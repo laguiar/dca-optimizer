@@ -54,7 +54,9 @@ This doesn't guarantee any significant portfolio perfomance on the long term, bu
 ### TODOs
 
 - Add payload examples and strategy configurations.
+- Add instructions to run the application locally or using a docker image.
 - Add new strategy: **_PORTFOLIO_** - all assets are going to be invested but the radio weight:target is used to balanced out over and under target assets.
 - Add a configuration option to considere the ATH distance in the calculations.
-- Payload validations
-- Make it available on Heroku _(or maybe test Render out)_
+- Payload validations.
+- Make it available on Heroku _(or maybe test Render out)_.
+- Make it available via docker image.
