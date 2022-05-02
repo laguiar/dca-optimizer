@@ -60,3 +60,4 @@ This doesn't guarantee any significant portfolio perfomance on the long term, bu
 - Payload validations.
 - Make it available on Heroku _(or maybe test Render out)_.
 - Make it available via docker image.
+- Fetch data from online sources to calculate the ATH percentage for _actuall_ asset tickers _(Stocks, ETFs, Cryptos)_.
