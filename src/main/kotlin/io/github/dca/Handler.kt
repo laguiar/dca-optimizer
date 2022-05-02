@@ -14,10 +14,9 @@ class DcaHandler {
 
     fun optimize(request: DcaRequest): OptimizerResponse =
         (request.strategy ?: DcaStrategy.default()).let { strategy ->
-            // validar target sum and weight sum
             request.assets
-                .filter { weightSmallerThanTarget(it, strategy) }
-                .filter { assetBellowAthThreshold(it, strategy) }
+                .filter { isWeightBellowTarget(it, strategy) }
+                .filter { isBellowAthThreshold(it, strategy) }
                 .let { filteredAssets ->
                     val targetLeft = 100.0 - filteredAssets.sumOf { it.target }
                     val targetFactor = targetLeft / (100 - targetLeft)
@@ -36,14 +35,14 @@ class DcaHandler {
                 }
         }
 
-    private fun weightSmallerThanTarget(asset: Asset, strategy: DcaStrategy) =
-        asset.weight < (asset.target + strategy.overTargetThreshold)
+    private fun isWeightBellowTarget(asset: Asset, strategy: DcaStrategy) =
+        asset.weight <= (asset.target + strategy.thresholds.overTarget)
 
-    private fun assetBellowAthThreshold(asset: Asset, strategy: DcaStrategy) =
+    private fun isBellowAthThreshold(asset: Asset, strategy: DcaStrategy) =
         // if num, the asset is included anyway
-        when (asset.belowAth) {
+        when (asset.fromAth) {
             null -> true
-            else -> asset.belowAth >= strategy.athThreshold
+            else -> asset.fromAth >= strategy.thresholds.fromAth
         }
 
 }

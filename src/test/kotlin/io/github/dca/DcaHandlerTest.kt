@@ -5,10 +5,8 @@ import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.containsKey
-import strikt.assertions.containsKeys
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import strikt.assertions.withValue
 import java.math.BigDecimal
 import java.math.MathContext
 
@@ -16,13 +14,13 @@ internal class DcaHandlerTest {
 
     private val handler = DcaHandler()
 
-    // ATH max value: 0.10
+    // ATH default threshold value: 5.0
     private val assets = listOf(
-        Asset(ticker = "A", weight = 25.0, target = 20.0, belowAth = 20.0), // over-target
-        Asset(ticker = "B", weight = 15.0, target = 20.0, belowAth = 8.0), // under-target but too close to ATH
-        Asset(ticker = "C", weight = 15.0, target = 25.0, belowAth = 15.0), // under-target
-        Asset(ticker = "D", weight = 10.0, target = 25.0, belowAth = 15.0), // under-target
-        Asset(ticker = "E", weight = 5.0, target = 10.0, belowAth = 22.0)   // under-target
+        Asset(ticker = "A", weight = 25.0, target = 20.0, fromAth = 20.0), // over-target
+        Asset(ticker = "B", weight = 15.0, target = 20.0, fromAth = 4.0), // under-target but too close to ATH
+        Asset(ticker = "C", weight = 15.0, target = 25.0, fromAth = 15.0), // under-target
+        Asset(ticker = "D", weight = 10.0, target = 25.0, fromAth = 15.0), // under-target
+        Asset(ticker = "E", weight = 5.0, target = 10.0, fromAth = 22.0)   // under-target
     )
 
     private val amountToInvest = BigDecimal("1000", MathContext.DECIMAL32)
@@ -52,7 +50,11 @@ internal class DcaHandlerTest {
         val request = DcaRequest(
             amount = amountToInvest,
             strategy = DcaStrategy(
-                calculationFactor = CalculationFactor.WEIGHT
+                calculationFactor = CalculationFactor.WEIGHT,
+                thresholds = Thresholds(
+                    fromAth = 10.0,
+                    overTarget = 0.1
+                )
             ),
             assets = assets
         )
@@ -72,9 +74,7 @@ internal class DcaHandlerTest {
     fun `Should optimize a request with multiple assets and TARGET strategy`() {
         val request = DcaRequest(
             amount = amountToInvest,
-            strategy = DcaStrategy(
-                calculationFactor = CalculationFactor.TARGET
-            ),
+            strategy = DcaStrategy.default(),
             assets = assets
         )
 
