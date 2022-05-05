@@ -15,7 +15,7 @@ data class DcaRequest(
     val assets: List<Asset>
 )
 
-data class OptimizerResponse(val distribution: Distribution)
+data class DcaResponse(val distribution: Distribution)
 
 data class Asset(
     val ticker: String,
@@ -42,5 +42,5 @@ data class Thresholds(
 )
 
 enum class CalculationFactor {
-    TARGET, WEIGHT
+    TARGET, WEIGHT, PORTFOLIO
 }

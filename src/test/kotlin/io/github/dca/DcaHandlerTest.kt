@@ -88,4 +88,39 @@ internal class DcaHandlerTest {
             }
         }
     }
+
+    @Test
+    fun `Should optimize a request with multiple assets and PORTFOLIO strategy`() {
+        // 9.0% of over-target will be divided by 3 assets
+        val assets = listOf(
+            Asset(ticker = "A", weight = 25.0, target = 20.0), // target will be 15.0
+            Asset(ticker = "B", weight = 14.0, target = 10.0), // target will be 6.0
+            Asset(ticker = "C", weight = 15.0, target = 30.0), // target will be 33.0
+            Asset(ticker = "D", weight = 10.0, target = 30.0), // target will be 33.0
+            Asset(ticker = "E", weight = 5.0, target = 10.0) //  target will be 13.00
+        )
+
+        val request = DcaRequest(
+            amount = amountToInvest,
+            strategy = DcaStrategy(
+                calculationFactor = CalculationFactor.PORTFOLIO,
+                thresholds = Thresholds(
+                    overTarget = 0.0
+                )
+            ),
+            assets = assets
+        )
+
+        handler.optimize(request).let { response ->
+            expect {
+                that(response.distribution).hasSize(5)
+                that(response.distribution.keys).containsExactly("A", "B","C", "D", "E")
+                that(response.distribution["A"]).isEqualTo(BigDecimal("150.00"))
+                that(response.distribution["B"]).isEqualTo(BigDecimal("60.00"))
+                that(response.distribution["C"]).isEqualTo(BigDecimal("330.00"))
+                that(response.distribution["D"]).isEqualTo(BigDecimal("330.00"))
+                that(response.distribution["E"]).isEqualTo(BigDecimal("130.00"))
+            }
+        }
+    }
 }

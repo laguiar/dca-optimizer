@@ -50,6 +50,7 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 
 - **WEIGHT**: The current asset weights distance from its target is used to determine the DCA distribution. _(Assets with same target might get different results)_
 - **TARGET**: The asset targets of the _"selected in"_ assets is used to determine the DCA distribution. _(Assets with same target will get the same result)_
+- **PORTFOLIO**: All assets will be invested, but over-weighted assets will have its target reduced and the different is distributed among all under-target assets.
 
 ### Payload example
 
@@ -103,7 +104,6 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 ### TODOs
 
 - Add instructions to run the application locally or using a docker image.
-- Add new strategy: **_PORTFOLIO_** - all assets are going to be invested but the radio weight:target is used to balanced out over and under target assets.
 - Add a configuration option to consider the ATH distance in the calculations.
 - Payload validations.
 - Make it available on Heroku _(or maybe test Render out)_.
