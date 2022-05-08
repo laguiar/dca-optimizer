@@ -6,8 +6,9 @@ import java.math.RoundingMode
 import javax.enterprise.context.ApplicationScoped
 
 typealias Distribution = Map<String, BigDecimal>
-
 private val mathContext = MathContext.DECIMAL32
+private const val HUNDRED_PERCENT = 100.0
+private const val ZERO = 0.0
 
 @ApplicationScoped
 class DcaHandler {
@@ -33,8 +34,8 @@ class DcaHandler {
 private fun distributeByTarget(request: DcaRequest, strategy: DcaStrategy): Distribution =
     filterAssetsByWeightAndAth(request.assets, strategy.thresholds)
         .let { filteredAssets ->
-            val targetLeft = 100.0 - filteredAssets.sumOf { it.target }
-            val targetFactor = targetLeft / (100 - targetLeft)
+            val targetLeft = HUNDRED_PERCENT - filteredAssets.sumOf { it.target }
+            val targetFactor = targetLeft / (HUNDRED_PERCENT - targetLeft)
 
             filteredAssets.associate { asset ->
                 val strategyFactor = (asset.target + (asset.target * targetFactor)).toDecimalRepresentation()
@@ -58,7 +59,7 @@ private fun distributeByPortfolio(request: DcaRequest, strategy: DcaStrategy): D
     val targetFactor = request.assets.sumOf { asset ->
         when {
             !isWeightBellowTarget(asset, strategy.thresholds) -> asset.weight - asset.target
-            else -> 0.0
+            else -> ZERO
         }
     }.div(
         request.assets.count { isWeightBellowTarget(it, strategy.thresholds) }
@@ -95,4 +96,4 @@ private fun BigDecimal.calculateDistribution(percentage: Double): BigDecimal =
     this.multiply(BigDecimal(percentage.toString()), mathContext)
         .setScale(2, RoundingMode.HALF_DOWN)
 
-private fun Double.toDecimalRepresentation(): Double = this / 100
+private fun Double.toDecimalRepresentation(): Double = this / HUNDRED_PERCENT

@@ -60,7 +60,7 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 {
     "amount": "1000.00",
     "strategy": {
-        "calculatorFactor": "WEIGHT",
+        "calculationFactor": "WEIGHT",
         "thresholds": {
             "fromAth": 10.0,
             "overTarget": 0.1
@@ -71,31 +71,31 @@ This doesn't guarantee any significant portfolio performance on the long term, b
             "ticker": "A",
             "weight": 25.0,
             "target": 20.0,
-            "belowAth": 18.0
+            "fromAth": 18.0
         },
         {
             "ticker": "B",
             "weight": 15.0,
             "target": 20.0,
-            "belowAth": 8.0
+            "fromAth": 8.0
         },
         {
             "ticker": "C",
             "weight": 15.0,
             "target": 25.0,
-            "belowAth": 15.5
+            "fromAth": 15.5
         },
         {
             "ticker": "D",
             "weight": 10.0,
             "target": 25.0,
-            "belowAth": 17.1
+            "fromAth": 17.1
         },
         {
             "ticker": "E",
             "weight": 5.0,
             "target": 10.0,
-            "belowAth": 22.0
+            "fromAth": 22.0
         }
     ]
 }
