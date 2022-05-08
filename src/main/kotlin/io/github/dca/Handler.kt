@@ -15,10 +15,10 @@ class DcaHandler {
 
     fun optimize(request: DcaRequest): DcaResponse =
         (request.strategy ?: DcaStrategy.default()).let { strategy ->
-            when (strategy.calculationFactor) {
-                CalculationFactor.TARGET -> calculateDistribution(request, strategy, ::distributeByTarget)
-                CalculationFactor.WEIGHT -> calculateDistribution(request, strategy, ::distributeByWeight)
-                CalculationFactor.PORTFOLIO -> calculateDistribution(request, strategy, ::distributeByPortfolio)
+            when (strategy.type) {
+                StrategyType.TARGET -> calculateDistribution(request, strategy, ::distributeByTarget)
+                StrategyType.WEIGHT -> calculateDistribution(request, strategy, ::distributeByWeight)
+                StrategyType.PORTFOLIO -> calculateDistribution(request, strategy, ::distributeByPortfolio)
             }
         }
 

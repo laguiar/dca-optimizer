@@ -50,7 +50,7 @@ internal class DcaHandlerTest {
         val request = DcaRequest(
             amount = amountToInvest,
             strategy = DcaStrategy(
-                calculationFactor = CalculationFactor.WEIGHT,
+                type = StrategyType.WEIGHT,
                 thresholds = Thresholds(
                     fromAth = 10.0,
                     overTarget = 0.1
@@ -103,7 +103,7 @@ internal class DcaHandlerTest {
         val request = DcaRequest(
             amount = amountToInvest,
             strategy = DcaStrategy(
-                calculationFactor = CalculationFactor.PORTFOLIO,
+                type = StrategyType.PORTFOLIO,
                 thresholds = Thresholds(
                     overTarget = 0.0
                 )

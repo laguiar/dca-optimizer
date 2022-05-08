@@ -30,12 +30,12 @@ Some criteria are:
 Imagine a hypothetical portfolio with 5 assets:
 
 | Ticker | Weight | Target | From ATH |
-|:---|---:|---:|---:|
-|A|25.0%| 20.0%|18.0%|
-|B|15.0%| 20.0%|8.0%|
-|C|15.0%| 25.0%|15.5%|
-|D|10.0%| 25.0%|17.1%|
-|F|5.0%| 10.0%|22.0%|
+|:-------|-------:|-------:|---------:|
+| A      |  25.0% |  20.0% |    18.0% |
+| B      |  15.0% |  20.0% |     8.0% |
+| C      |  15.0% |  25.0% |    15.5% |
+| D      |  10.0% |  25.0% |    17.1% |
+| F      |   5.0% |  10.0% |    22.0% |
 
 In a configuration where you define that the ATH threshold is 10% _(only assets that are below this value will be invested)_:
 
@@ -60,7 +60,7 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 {
     "amount": "1000.00",
     "strategy": {
-        "calculationFactor": "WEIGHT",
+        "type": "WEIGHT",
         "thresholds": {
             "fromAth": 10.0,
             "overTarget": 0.1

@@ -25,12 +25,12 @@ data class Asset(
 )
 
 data class DcaStrategy(
-    val calculationFactor: CalculationFactor,
+    val type: StrategyType,
     val thresholds: Thresholds
 ) {
     companion object {
         fun default() = DcaStrategy(
-            calculationFactor = CalculationFactor.TARGET,
+            type = StrategyType.TARGET,
             thresholds = Thresholds()
         )
     }
@@ -41,6 +41,6 @@ data class Thresholds(
     val overTarget: Double = OVER_TARGET_THRESHOLD
 )
 
-enum class CalculationFactor {
+enum class StrategyType {
     TARGET, WEIGHT, PORTFOLIO
 }
