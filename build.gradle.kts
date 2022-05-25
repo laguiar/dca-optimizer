@@ -25,7 +25,7 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
-    testImplementation("io.strikt:strikt-core:0.34.0")
+    testImplementation("io.strikt:strikt-core:0.34.1")
 }
 
 group = "io.github"
