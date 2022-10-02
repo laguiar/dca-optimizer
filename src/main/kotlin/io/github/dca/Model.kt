@@ -10,7 +10,7 @@ private const val OVER_TARGET_THRESHOLD = 0.0
 data class DcaRequest(
     @field: NotNull
     val amount: BigDecimal,
-    val strategy: DcaStrategy? = null,
+    val strategy: DcaStrategy = DcaStrategy.default(),
     @field: NotEmpty
     val assets: List<Asset>
 )
@@ -19,19 +19,27 @@ data class DcaResponse(val distribution: Distribution)
 
 data class Asset(
     val ticker: String,
-    val weight: Double,
-    val target: Double,
-    val fromAth: Double? = null
+    val weight: Double = 0.0,
+    val target: Double = 0.0,
+    val fromAth: Double = 0.0,
+    val rating: Int = 0,
+    val yield: Double = 0.0,
 )
 
 data class DcaStrategy(
     val type: StrategyType,
-    val thresholds: Thresholds
+    val thresholds: Thresholds = Thresholds(
+        fromAth = ATH_THRESHOLD,
+        overTarget = OVER_TARGET_THRESHOLD
+    )
 ) {
     companion object {
         fun default() = DcaStrategy(
             type = StrategyType.TARGET,
-            thresholds = Thresholds()
+            thresholds = Thresholds(
+                fromAth = ATH_THRESHOLD,
+                overTarget = OVER_TARGET_THRESHOLD
+            )
         )
     }
 }
@@ -42,5 +50,5 @@ data class Thresholds(
 )
 
 enum class StrategyType {
-    TARGET, WEIGHT, PORTFOLIO
+    TARGET, WEIGHT, PORTFOLIO, RATING, DIVIDEND
 }

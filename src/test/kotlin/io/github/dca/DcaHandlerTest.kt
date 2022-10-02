@@ -123,4 +123,35 @@ internal class DcaHandlerTest {
             }
         }
     }
+
+    @Test
+    fun `Should optimize a request with RATING strategy`() {
+        val assets = listOf(
+            Asset(ticker = "A", rating = 5),
+            Asset(ticker = "B", rating = 5),
+            Asset(ticker = "C", rating = 4),
+            Asset(ticker = "D", rating = 3),
+            Asset(ticker = "E", rating = 1)
+        )
+
+        val request = DcaRequest(
+            amount = amountToInvest,
+            strategy = DcaStrategy(
+                type = StrategyType.RATING
+            ),
+            assets = assets
+        )
+
+        handler.optimize(request).let { response ->
+            expect {
+                that(response.distribution).hasSize(5)
+                that(response.distribution.keys).containsExactly("A", "B","C", "D", "E")
+                that(response.distribution["A"]).isEqualTo(BigDecimal("277.78"))
+                that(response.distribution["B"]).isEqualTo(BigDecimal("277.78"))
+                that(response.distribution["C"]).isEqualTo(BigDecimal("222.22"))
+                that(response.distribution["D"]).isEqualTo(BigDecimal("166.67"))
+                that(response.distribution["E"]).isEqualTo(BigDecimal("55.56"))
+            }
+        }
+    }
 }

@@ -42,17 +42,18 @@ In a configuration where you define that the ATH threshold is 10% _(only assets 
 - The first asset with ticker **A**, won't be invested, because it's over its target.
 - The second asset with ticker **B**, won't be invested, because it's below the ATH threshold of 10%.
 
-The point is to help balance out a portfolio with under/over weighted assets and minimize just a little bit buying assets that are very high in price currently. _(against its ATH/52 weeks price)_
+The point is to help balance out a portfolio with under/over weighted assets and minimize just a little buying assets that are very high in price currently. _(against its ATH/52 weeks price)_
 
 This doesn't guarantee any significant portfolio performance on the long term, but it **might** do slightly better overall.
 
 ### Strategies
 
-- **WEIGHT**: The current asset weights distance from its target is used to determine the DCA distribution. _(Assets with same target might get different results)_
+- **WEIGHT**: The current asset weight distance from its target is used to determine the DCA distribution. _(Assets with same target might get different results)_
 - **TARGET**: The asset targets of the _"selected in"_ assets is used to determine the DCA distribution. _(Assets with same target will get the same result)_
 - **PORTFOLIO**: All assets will be invested, but over-weighted assets will have its target reduced and the different is distributed among all under-target assets.
+- **RATING**: All rated assets will be invested, **ONLY** the rating values will be used to calculate the distribution. _(Think on a 5 stars rating system)_
 
-### Payload example
+### Payload examples
 
 `POST http://localhost:8080/api/optimize`
 
@@ -101,11 +102,42 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 }
 ```
 
+
+```json
+{
+    "amount": "1000.00",
+    "strategy": {
+        "type": "RATING"
+    },
+    "assets": [
+        {
+            "ticker": "A",
+            "rating": 3
+        },
+        {
+            "ticker": "B",
+            "rating": 5
+        },
+        {
+            "ticker": "C",
+            "rating": 5
+        },
+        {
+            "ticker": "D",
+            "fromAth": 2
+        },
+        {
+            "ticker": "E",
+            "rating": 4
+        }
+    ]
+}
+```
+
 ### TODOs
 
 - Add instructions to run the application locally or using a docker image.
 - Add a configuration option to consider the ATH distance in the calculations.
 - Payload validations.
-- Make it available on Heroku _(or maybe test Render out)_.
 - Make it available via docker image.
 - Fetch data from online sources to calculate the ATH percentage for _actual_ asset tickers _(Stocks, ETFs, Cryptos)_.

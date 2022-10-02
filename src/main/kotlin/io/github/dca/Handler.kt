@@ -6,6 +6,7 @@ import java.math.RoundingMode
 import javax.enterprise.context.ApplicationScoped
 
 typealias Distribution = Map<String, BigDecimal>
+
 private val mathContext = MathContext.DECIMAL32
 private const val HUNDRED_PERCENT = 100.0
 private const val ZERO = 0.0
@@ -14,12 +15,12 @@ private const val ZERO = 0.0
 class DcaHandler {
 
     fun optimize(request: DcaRequest): DcaResponse =
-        (request.strategy ?: DcaStrategy.default()).let { strategy ->
-            when (strategy.type) {
-                StrategyType.TARGET -> calculateDistribution(request, strategy, ::distributeByTarget)
-                StrategyType.WEIGHT -> calculateDistribution(request, strategy, ::distributeByWeight)
-                StrategyType.PORTFOLIO -> calculateDistribution(request, strategy, ::distributeByPortfolio)
-            }
+        when (request.strategy.type) {
+            StrategyType.TARGET -> calculateDistribution(request, request.strategy, ::distributeByTarget)
+            StrategyType.WEIGHT -> calculateDistribution(request, request.strategy, ::distributeByWeight)
+            StrategyType.PORTFOLIO -> calculateDistribution(request, request.strategy, ::distributeByPortfolio)
+            StrategyType.RATING -> calculateDistribution(request, request.strategy, ::distributeByRating)
+            else -> TODO()
         }
 
     private fun calculateDistribution(
@@ -77,6 +78,15 @@ private fun distributeByPortfolio(request: DcaRequest, strategy: DcaStrategy): D
     }
 }
 
+private fun distributeByRating(request: DcaRequest, strategy: DcaStrategy): Distribution =
+    request.assets.sumOf { it.rating.orZero().toDouble() }
+        .let { sum ->
+            request.assets.associate { asset ->
+                val weight = asset.rating.orZero().div(sum)
+                asset.ticker to request.amount.calculateDistribution(weight)
+            }
+        }
+
 private fun filterAssetsByWeightAndAth(assets: List<Asset>, thresholds: Thresholds): List<Asset> =
     assets
         .filter { isWeightBellowTarget(it, thresholds) }
@@ -88,7 +98,7 @@ private fun isWeightBellowTarget(asset: Asset, thresholds: Thresholds) =
 private fun isBellowAthThreshold(asset: Asset, thresholds: Thresholds) =
     // if not set, the asset is included anyway
     when (asset.fromAth) {
-        null -> true
+        ZERO -> true // default strategy value or just in ath by luck
         else -> asset.fromAth >= thresholds.fromAth
     }
 
@@ -97,3 +107,5 @@ private fun BigDecimal.calculateDistribution(percentage: Double): BigDecimal =
         .setScale(2, RoundingMode.HALF_DOWN)
 
 private fun Double.toDecimalRepresentation(): Double = this / HUNDRED_PERCENT
+
+fun Int?.orZero(): Int = this ?: 0

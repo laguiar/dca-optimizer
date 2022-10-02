@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "1.6.21"
-    kotlin("plugin.allopen") version "1.6.21"
+    kotlin("jvm") version "1.7.20"
+    kotlin("plugin.allopen") version "1.7.20"
     id("io.quarkus")
 }
 
@@ -22,6 +22,8 @@ dependencies {
     implementation("io.quarkus:quarkus-reactive-routes")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-arc")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
