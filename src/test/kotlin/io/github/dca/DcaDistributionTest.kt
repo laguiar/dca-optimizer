@@ -10,9 +10,7 @@ import strikt.assertions.isEqualTo
 import java.math.BigDecimal
 import java.math.MathContext
 
-internal class DcaHandlerTest {
-
-    private val handler = DcaHandler()
+internal class DcaDistributionTest {
 
     // ATH default threshold value: 5.0
     private val assets = listOf(
@@ -38,8 +36,8 @@ internal class DcaHandlerTest {
             )
         )
 
-        handler.optimize(request).let { response ->
-            expectThat(response.distribution)
+        distributeByTarget(request).let { distribution ->
+            expectThat(distribution)
                 .hasSize(1)
                 .containsKey("BTC")
         }
@@ -59,13 +57,13 @@ internal class DcaHandlerTest {
             assets = assets
         )
 
-        handler.optimize(request).let { response ->
+        distributeByWeight(request).let { distribution ->
             expect {
-                that(response.distribution).hasSize(3)
-                that(response.distribution.keys).containsExactly("C", "D", "E")
-                that(response.distribution["C"]).isEqualTo(BigDecimal("333.33"))
-                that(response.distribution["D"]).isEqualTo(BigDecimal("500.00"))
-                that(response.distribution["E"]).isEqualTo(BigDecimal("166.67"))
+                that(distribution).hasSize(3)
+                that(distribution.keys).containsExactly("C", "D", "E")
+                that(distribution["C"]).isEqualTo(BigDecimal("333.33"))
+                that(distribution["D"]).isEqualTo(BigDecimal("500.00"))
+                that(distribution["E"]).isEqualTo(BigDecimal("166.67"))
             }
         }
     }
@@ -78,13 +76,13 @@ internal class DcaHandlerTest {
             assets = assets
         )
 
-        handler.optimize(request).let { response ->
+        distributeByTarget(request).let { distribution ->
             expect {
-                that(response.distribution).hasSize(3)
-                that(response.distribution.keys).containsExactly("C", "D", "E")
-                that(response.distribution["C"]).isEqualTo(BigDecimal("416.67"))
-                that(response.distribution["D"]).isEqualTo(BigDecimal("416.67"))
-                that(response.distribution["E"]).isEqualTo(BigDecimal("166.67"))
+                that(distribution).hasSize(3)
+                that(distribution.keys).containsExactly("C", "D", "E")
+                that(distribution["C"]).isEqualTo(BigDecimal("416.67"))
+                that(distribution["D"]).isEqualTo(BigDecimal("416.67"))
+                that(distribution["E"]).isEqualTo(BigDecimal("166.67"))
             }
         }
     }
@@ -111,15 +109,15 @@ internal class DcaHandlerTest {
             assets = assets
         )
 
-        handler.optimize(request).let { response ->
+        distributeByPortfolio(request).let { distribution ->
             expect {
-                that(response.distribution).hasSize(5)
-                that(response.distribution.keys).containsExactly("A", "B","C", "D", "E")
-                that(response.distribution["A"]).isEqualTo(BigDecimal("150.00"))
-                that(response.distribution["B"]).isEqualTo(BigDecimal("60.00"))
-                that(response.distribution["C"]).isEqualTo(BigDecimal("330.00"))
-                that(response.distribution["D"]).isEqualTo(BigDecimal("330.00"))
-                that(response.distribution["E"]).isEqualTo(BigDecimal("130.00"))
+                that(distribution).hasSize(5)
+                that(distribution.keys).containsExactly("A", "B","C", "D", "E")
+                that(distribution["A"]).isEqualTo(BigDecimal("150.00"))
+                that(distribution["B"]).isEqualTo(BigDecimal("60.00"))
+                that(distribution["C"]).isEqualTo(BigDecimal("330.00"))
+                that(distribution["D"]).isEqualTo(BigDecimal("330.00"))
+                that(distribution["E"]).isEqualTo(BigDecimal("130.00"))
             }
         }
     }
@@ -142,15 +140,15 @@ internal class DcaHandlerTest {
             assets = assets
         )
 
-        handler.optimize(request).let { response ->
+        distributeByRating(request).let { distribution ->
             expect {
-                that(response.distribution).hasSize(5)
-                that(response.distribution.keys).containsExactly("A", "B","C", "D", "E")
-                that(response.distribution["A"]).isEqualTo(BigDecimal("277.78"))
-                that(response.distribution["B"]).isEqualTo(BigDecimal("277.78"))
-                that(response.distribution["C"]).isEqualTo(BigDecimal("222.22"))
-                that(response.distribution["D"]).isEqualTo(BigDecimal("166.67"))
-                that(response.distribution["E"]).isEqualTo(BigDecimal("55.56"))
+                that(distribution).hasSize(5)
+                that(distribution.keys).containsExactly("A", "B","C", "D", "E")
+                that(distribution["A"]).isEqualTo(BigDecimal("277.78"))
+                that(distribution["B"]).isEqualTo(BigDecimal("277.78"))
+                that(distribution["C"]).isEqualTo(BigDecimal("222.22"))
+                that(distribution["D"]).isEqualTo(BigDecimal("166.67"))
+                that(distribution["E"]).isEqualTo(BigDecimal("55.56"))
             }
         }
     }

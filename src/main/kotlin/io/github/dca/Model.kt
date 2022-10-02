@@ -4,6 +4,8 @@ import java.math.BigDecimal
 import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
 
+typealias Distribution = Map<String, BigDecimal>
+
 private const val ATH_THRESHOLD = 5.0
 private const val OVER_TARGET_THRESHOLD = 0.0
 

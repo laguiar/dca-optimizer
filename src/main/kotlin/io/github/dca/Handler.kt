@@ -3,37 +3,13 @@ package io.github.dca
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
-import javax.enterprise.context.ApplicationScoped
-
-typealias Distribution = Map<String, BigDecimal>
 
 private val mathContext = MathContext.DECIMAL32
 private const val HUNDRED_PERCENT = 100.0
 private const val ZERO = 0.0
 
-@ApplicationScoped
-class DcaHandler {
-
-    fun optimize(request: DcaRequest): DcaResponse =
-        when (request.strategy.type) {
-            StrategyType.TARGET -> calculateDistribution(request, request.strategy, ::distributeByTarget)
-            StrategyType.WEIGHT -> calculateDistribution(request, request.strategy, ::distributeByWeight)
-            StrategyType.PORTFOLIO -> calculateDistribution(request, request.strategy, ::distributeByPortfolio)
-            StrategyType.RATING -> calculateDistribution(request, request.strategy, ::distributeByRating)
-            else -> TODO()
-        }
-
-    private fun calculateDistribution(
-        request: DcaRequest,
-        strategy: DcaStrategy,
-        applyStrategy: (DcaRequest, DcaStrategy) -> Distribution
-    ): DcaResponse =
-        applyStrategy(request, strategy)
-            .let(::DcaResponse)
-}
-
-private fun distributeByTarget(request: DcaRequest, strategy: DcaStrategy): Distribution =
-    filterAssetsByWeightAndAth(request.assets, strategy.thresholds)
+fun distributeByTarget(request: DcaRequest): Distribution =
+    filterAssetsByWeightAndAth(request.assets, request.strategy.thresholds)
         .let { filteredAssets ->
             val targetLeft = HUNDRED_PERCENT - filteredAssets.sumOf { it.target }
             val targetFactor = targetLeft / (HUNDRED_PERCENT - targetLeft)
@@ -44,8 +20,8 @@ private fun distributeByTarget(request: DcaRequest, strategy: DcaStrategy): Dist
             }
         }
 
-private fun distributeByWeight(request: DcaRequest, strategy: DcaStrategy): Distribution =
-    filterAssetsByWeightAndAth(request.assets, strategy.thresholds)
+fun distributeByWeight(request: DcaRequest): Distribution =
+    filterAssetsByWeightAndAth(request.assets, request.strategy.thresholds)
         .let { filteredAssets ->
             val totalWeightGap = filteredAssets.sumOf { it.target - it.weight }
 
@@ -55,21 +31,22 @@ private fun distributeByWeight(request: DcaRequest, strategy: DcaStrategy): Dist
             }
         }
 
-private fun distributeByPortfolio(request: DcaRequest, strategy: DcaStrategy): Distribution {
+fun distributeByPortfolio(request: DcaRequest): Distribution {
     // sum the total percentage of over target assets and divide it by the number of under target assets
+    val thresholds = request.strategy.thresholds
     val targetFactor = request.assets.sumOf { asset ->
         when {
-            !isWeightBellowTarget(asset, strategy.thresholds) -> asset.weight - asset.target
+            !isWeightBellowTarget(asset, thresholds) -> asset.weight - asset.target
             else -> ZERO
         }
     }.div(
-        request.assets.count { isWeightBellowTarget(it, strategy.thresholds) }
+        request.assets.count { isWeightBellowTarget(it, thresholds) }
     )
 
     return request.assets.associate { asset ->
         val adjustedTarget = when {
             // increase the asset target by the targetFactor
-            isWeightBellowTarget(asset, strategy.thresholds) -> asset.target + targetFactor
+            isWeightBellowTarget(asset, thresholds) -> asset.target + targetFactor
             // reduce the over target assets by its over target amount
             else -> asset.target - (asset.weight - asset.target)
         }.toDecimalRepresentation()
@@ -78,7 +55,7 @@ private fun distributeByPortfolio(request: DcaRequest, strategy: DcaStrategy): D
     }
 }
 
-private fun distributeByRating(request: DcaRequest, strategy: DcaStrategy): Distribution =
+fun distributeByRating(request: DcaRequest): Distribution =
     request.assets.sumOf { it.rating.orZero().toDouble() }
         .let { sum ->
             request.assets.associate { asset ->
