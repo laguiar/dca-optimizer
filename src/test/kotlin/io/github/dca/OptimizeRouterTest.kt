@@ -1,14 +1,16 @@
 package io.github.dca
 
+import io.quarkus.test.junit.QuarkusIntegrationTest
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import org.hamcrest.Matchers
+import org.hamcrest.Matchers.hasKey
 import org.junit.jupiter.api.Test
 
-@QuarkusTest
+@QuarkusIntegrationTest
 class OptimizeRouterTest {
 
     @Test
@@ -32,7 +34,7 @@ class OptimizeRouterTest {
             post("/api/optimize")
         } Then {
             statusCode(200)
-            body("distribution", Matchers.hasKey("BTC"))
+            body("distribution", hasKey("BTC"))
         }
     }
 }

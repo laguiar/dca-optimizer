@@ -1,18 +1,22 @@
 package io.github.dca
 
-import io.quarkus.vertx.web.Body
-import io.quarkus.vertx.web.ReactiveRoutes.APPLICATION_JSON
-import io.quarkus.vertx.web.Route
-import io.quarkus.vertx.web.RouteBase
 import javax.enterprise.context.ApplicationScoped
 import javax.validation.Valid
+import javax.ws.rs.Consumes
+import javax.ws.rs.POST
+import javax.ws.rs.Path
+import javax.ws.rs.Produces
+import javax.ws.rs.core.MediaType
 
 @ApplicationScoped
-@RouteBase(path = "/api", consumes = [APPLICATION_JSON], produces = [APPLICATION_JSON])
+@Path("api")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 class ApplicationRouter {
 
-    @Route(path = "/optimize", methods = [Route.HttpMethod.POST])
-    fun optimize(@Body @Valid request: DcaRequest): DcaResponse = processOptimization(request)
+    @Path("optimize")
+    @POST
+    suspend fun optimize(@Valid request: DcaRequest): DcaResponse = processOptimization(request)
 }
 
 private fun processOptimization(request: DcaRequest): DcaResponse =

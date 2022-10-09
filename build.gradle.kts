@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     kotlin("jvm") version "1.7.20"
     kotlin("plugin.allopen") version "1.7.20"
@@ -16,10 +18,9 @@ val quarkusPlatformVersion: String by project
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
     implementation("io.quarkus:quarkus-container-image-docker")
-    implementation("io.quarkus:quarkus-hibernate-validator")
     implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
     implementation("io.quarkus:quarkus-kotlin")
-    implementation("io.quarkus:quarkus-reactive-routes")
+    implementation("io.quarkus:quarkus-hibernate-validator")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-arc")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -47,4 +48,12 @@ allOpen {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
     kotlinOptions.javaParameters = true
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        displayGranularity = 2
+        events(TestLogEvent.PASSED, TestLogEvent.FAILED)
+    }
 }
