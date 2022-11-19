@@ -1,24 +1,36 @@
 package io.github.dca
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.jsonPrimitive
 import java.math.BigDecimal
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.NotNull
 
-typealias Distribution = Map<String, BigDecimal>
+typealias BigDecimalNumber = @Serializable(with = BigDecimalNumericSerializer::class) BigDecimal
+typealias Distribution = Map<String, BigDecimalNumber>
 
 private const val ATH_THRESHOLD = 5.0
 private const val OVER_TARGET_THRESHOLD = 0.0
 
+@Serializable
 data class DcaRequest(
-    @field: NotNull
-    val amount: BigDecimal,
+    val amount: BigDecimalNumber,
     val strategy: DcaStrategy = DcaStrategy.default(),
-    @field: NotEmpty
     val assets: List<Asset>
-)
+) {
+    init {
+        require(assets.isNotEmpty()) { "Assets list cannot be empty" }
+    }
+}
 
+@Serializable
 data class DcaResponse(val distribution: Distribution)
 
+@Serializable
 data class Asset(
     val ticker: String,
     val weight: Double = 0.0,
@@ -28,6 +40,7 @@ data class Asset(
     val yield: Double = 0.0,
 )
 
+@Serializable
 data class DcaStrategy(
     val type: StrategyType,
     val thresholds: Thresholds = Thresholds(
@@ -46,6 +59,7 @@ data class DcaStrategy(
     }
 }
 
+@Serializable
 data class Thresholds(
     val fromAth: Double = ATH_THRESHOLD,
     val overTarget: Double = OVER_TARGET_THRESHOLD
@@ -53,4 +67,19 @@ data class Thresholds(
 
 enum class StrategyType {
     TARGET, WEIGHT, PORTFOLIO, RATING, DIVIDEND
+}
+
+private object BigDecimalNumericSerializer : KSerializer<BigDecimal> {
+
+    override val descriptor = PrimitiveSerialDescriptor("java.math.BigDecimal", PrimitiveKind.DOUBLE)
+
+    override fun deserialize(decoder: Decoder): BigDecimal =
+        if (decoder is JsonDecoder) {
+            BigDecimal(decoder.decodeJsonElement().jsonPrimitive.content)
+        } else {
+            BigDecimal(decoder.decodeString())
+        }
+
+    override fun serialize(encoder: Encoder, value: BigDecimal) =
+        encoder.encodeString(value.toPlainString())
 }

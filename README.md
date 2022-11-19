@@ -1,6 +1,6 @@
 # dca-optimizer
 
-This project uses [Quarkus](https://quarkus.io) and [Kotlin](https://kotlinlang.org), and it's intended to be just a playground.
+This project uses [Ktor](https://ktor.io) and [Kotlin Language](https://kotlinlang.org), and it's intended to be just a playground project.
 
 > **_NOTE:_**  This project is not a trading-bot nor a financial adviser tool, try it out on your own.
 
