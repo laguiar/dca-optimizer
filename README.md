@@ -48,9 +48,9 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 
 ### Strategies
 
-- **WEIGHT**: The current asset weight distance from its target is used to determine the DCA distribution. _(Assets with same target might get different results)_
-- **TARGET**: The asset targets of the _"selected in"_ assets is used to determine the DCA distribution. _(Assets with same target will get the same result)_
-- **PORTFOLIO**: All assets will be invested, but over-weighted assets will have its target reduced and the different is distributed among all under-target assets.
+- **WEIGHT**: The current asset's weight distance from its target is used to determine the DCA distribution. _(Assets with same target might get different results)_
+- **TARGET**: The asset's target is used to determine the DCA distribution, over-weighted assets are discarded. _(Assets with same target will get the same result)_
+- **PORTFOLIO**: All assets will be invested, but over-weighted assets will have its target reduced and the difference is distributed among all under-target assets.
 - **RATING**: All rated assets will be invested, **ONLY** the rating values will be used to calculate the distribution. _(Think on a 5 stars rating system)_
 
 ### Payload examples
