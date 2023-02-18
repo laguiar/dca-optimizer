@@ -69,6 +69,37 @@ internal class DcaDistributionTest {
     }
 
     @Test
+    fun `Should optimize a request with WEIGHT strategy and the same weight target asset`() {
+        val assets = listOf(
+            Asset(ticker = "A", weight = 25.0, target = 25.0), // same target and weight
+            Asset(ticker = "B", weight = 25.1, target = 25.0), // weight is just under the threshold
+            Asset(ticker = "C", weight = 20.0, target = 25.0),
+            Asset(ticker = "D", weight = 20.0, target = 25.0)
+        )
+
+        val request = DcaRequest(
+            amount = amountToInvest,
+            strategy = DcaStrategy(
+                type = StrategyType.WEIGHT,
+                thresholds = Thresholds(
+                    fromAth = 10.0,
+                    overTarget = 0.1
+                )
+            ),
+            assets = assets
+        )
+
+        distributeByWeight(request).let { distribution ->
+            expect {
+                that(distribution).hasSize(2)
+                that(distribution.keys).containsExactly("C", "D")
+                that(distribution["C"]).isEqualTo(BigDecimal("500.00"))
+                that(distribution["D"]).isEqualTo(BigDecimal("500.00"))
+            }
+        }
+    }
+
+    @Test
     fun `Should optimize a request with multiple assets and TARGET strategy`() {
         val request = DcaRequest(
             amount = amountToInvest,

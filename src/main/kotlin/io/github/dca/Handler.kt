@@ -33,20 +33,15 @@ fun distributeByWeight(request: DcaRequest): Distribution =
 
 fun distributeByPortfolio(request: DcaRequest): Distribution {
     // sum the total percentage of over target assets and divide it by the number of under target assets
-    val thresholds = request.strategy.thresholds
     val targetFactor = request.assets.sumOf { asset ->
-        when {
-            !isWeightBellowTarget(asset, thresholds) -> asset.weight - asset.target
-            else -> ZERO
-        }
-    }.div(
-        request.assets.count { isWeightBellowTarget(it, thresholds) }
-    )
+        if (asset.isWeightBellowTarget.not()) asset.weight - asset.target else ZERO
+    }
+        .div(request.assets.count { it.isWeightBellowTarget })
 
     return request.assets.associate { asset ->
         val adjustedTarget = when {
             // increase the asset target by the targetFactor
-            isWeightBellowTarget(asset, thresholds) -> asset.target + targetFactor
+            asset.isWeightBellowTarget -> asset.target + targetFactor
             // reduce the over target assets by its over target amount
             else -> asset.target - (asset.weight - asset.target)
         }.toDecimalRepresentation()
@@ -66,11 +61,8 @@ fun distributeByRating(request: DcaRequest): Distribution =
 
 private fun filterAssetsByWeightAndAth(assets: List<Asset>, thresholds: Thresholds): List<Asset> =
     assets
-        .filter { isWeightBellowTarget(it, thresholds) }
+        .filter { it.isWeightBellowTarget }
         .filter { isBellowAthThreshold(it, thresholds) }
-
-private fun isWeightBellowTarget(asset: Asset, thresholds: Thresholds) =
-    asset.weight <= (asset.target + thresholds.overTarget)
 
 private fun isBellowAthThreshold(asset: Asset, thresholds: Thresholds) =
     // if not set, the asset is included anyway

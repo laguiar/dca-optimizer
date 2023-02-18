@@ -38,7 +38,9 @@ data class Asset(
     val fromAth: Double = 0.0,
     val rating: Int = 0,
     val yield: Double = 0.0,
-)
+) {
+    val isWeightBellowTarget = weight < target
+}
 
 @Serializable
 data class DcaStrategy(
