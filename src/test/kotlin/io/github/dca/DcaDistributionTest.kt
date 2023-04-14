@@ -1,5 +1,7 @@
 package io.github.dca
 
+import io.github.dca.strategy.distributeByPortfolio
+import io.github.dca.strategy.distributeByWeight
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.api.expectThat
@@ -47,6 +49,7 @@ internal class DcaDistributionTest {
     fun `Should optimize a request with multiple assets and WEIGHT strategy`() {
         val request = DcaRequest(
             amount = amountToInvest,
+            portfolioValue = amountToInvest.multiply(5.0),
             strategy = DcaStrategy(
                 type = StrategyType.WEIGHT,
                 thresholds = Thresholds(
@@ -72,13 +75,14 @@ internal class DcaDistributionTest {
     fun `Should optimize a request with WEIGHT strategy and the same weight target asset`() {
         val assets = listOf(
             Asset(ticker = "A", weight = 25.0, target = 25.0), // same target and weight
-            Asset(ticker = "B", weight = 25.1, target = 25.0), // weight is just under the threshold
+            Asset(ticker = "B", weight = 25.1, target = 25.0), // weight is just over the threshold
             Asset(ticker = "C", weight = 20.0, target = 25.0),
             Asset(ticker = "D", weight = 20.0, target = 25.0)
         )
 
         val request = DcaRequest(
             amount = amountToInvest,
+            portfolioValue = amountToInvest.multiply(10.0),
             strategy = DcaStrategy(
                 type = StrategyType.WEIGHT,
                 thresholds = Thresholds(

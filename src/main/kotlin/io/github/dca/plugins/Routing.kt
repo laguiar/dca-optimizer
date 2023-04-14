@@ -4,15 +4,17 @@ import io.github.dca.DcaRequest
 import io.github.dca.DcaResponse
 import io.github.dca.Distribution
 import io.github.dca.StrategyType
-import io.github.dca.distributeByPortfolio
 import io.github.dca.distributeByRating
 import io.github.dca.distributeByTarget
-import io.github.dca.distributeByWeight
-import io.ktor.server.routing.*
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.request.*
+import io.github.dca.strategy.distributeByPortfolio
+import io.github.dca.strategy.distributeByWeight
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
 
 fun Application.configureRouting() {
     routing {
@@ -29,11 +31,10 @@ private fun processOptimization(request: DcaRequest): DcaResponse =
         StrategyType.WEIGHT -> calculateDistribution(request, ::distributeByWeight)
         StrategyType.PORTFOLIO -> calculateDistribution(request, ::distributeByPortfolio)
         StrategyType.RATING -> calculateDistribution(request, ::distributeByRating)
-        else -> TODO()
+        StrategyType.DIVIDEND -> TODO()
     }
 
 private fun calculateDistribution(
     request: DcaRequest,
     applyStrategy: (DcaRequest) -> Distribution
-): DcaResponse =
-    DcaResponse(applyStrategy(request))
+): DcaResponse = DcaResponse(applyStrategy(request))

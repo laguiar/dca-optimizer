@@ -19,12 +19,18 @@ private const val OVER_TARGET_THRESHOLD = 0.0
 @Serializable
 data class DcaRequest(
     val amount: BigDecimalNumber,
+    val portfolioValue: BigDecimalNumber? = null,
     val strategy: DcaStrategy = DcaStrategy.default(),
     val assets: List<Asset>
 ) {
     init {
         require(assets.isNotEmpty()) { "Assets list cannot be empty" }
+        require(
+            if (strategy.type == StrategyType.WEIGHT) portfolioValue != null else true
+        ) { "WEIGHT strategy requires Portfolio value" }
     }
+
+    fun portfolioValueOrZero(): BigDecimalNumber = portfolioValue ?: BigDecimal.ZERO
 }
 
 @Serializable
