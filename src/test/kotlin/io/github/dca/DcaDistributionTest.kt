@@ -187,4 +187,9 @@ internal class DcaDistributionTest {
             }
         }
     }
+
+    @Test
+    fun `Should optimize a request with REBALANCE strategy`() {
+
+    }
 }

@@ -32,6 +32,7 @@ private fun processOptimization(request: DcaRequest): DcaResponse =
         StrategyType.PORTFOLIO -> calculateDistribution(request, ::distributeByPortfolio)
         StrategyType.RATING -> calculateDistribution(request, ::distributeByRating)
         StrategyType.DIVIDEND -> TODO()
+        StrategyType.REBALANCE -> TODO()
     }
 
 private fun calculateDistribution(

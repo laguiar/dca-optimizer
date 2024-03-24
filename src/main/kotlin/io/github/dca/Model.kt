@@ -44,6 +44,7 @@ data class Asset(
     val fromAth: Double = 0.0,
     val rating: Int = 0,
     val yield: Double = 0.0,
+    val gains: BigDecimalNumber = BigDecimal.ZERO
 ) {
     val isWeightBellowTarget = weight < target
 }
@@ -74,7 +75,7 @@ data class Thresholds(
 )
 
 enum class StrategyType {
-    TARGET, WEIGHT, PORTFOLIO, RATING, DIVIDEND
+    TARGET, WEIGHT, PORTFOLIO, RATING, DIVIDEND, REBALANCE
 }
 
 private object BigDecimalNumericSerializer : KSerializer<BigDecimal> {
