@@ -17,6 +17,31 @@ private const val ATH_THRESHOLD = 5.0
 private const val OVER_TARGET_THRESHOLD = 0.0
 
 @Serializable
+data class WithdrawalCalculationRequest(
+    val totalAmount: BigDecimalNumber,
+    val monthlyWithdraw: BigDecimalNumber,
+    val expectedYearlyReturn: Double
+)
+
+@Serializable
+data class WithdrawalCalculationResponse(
+    val years: Double,
+    val isInfinite: Boolean
+)
+
+@Serializable
+data class InitialAmountCalculationRequest(
+    val shouldLastForYears: Double,
+    val monthlyWithdraw: BigDecimalNumber,
+    val expectedYearlyReturn: Double
+)
+
+@Serializable
+data class InitialAmountCalculationResponse(
+    val totalAmount: BigDecimalNumber
+)
+
+@Serializable
 data class DcaRequest(
     val amount: BigDecimalNumber,
     val portfolioValue: BigDecimalNumber? = null,

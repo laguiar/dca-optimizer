@@ -141,3 +141,101 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 - Payload validations.
 - Make it available via docker image.
 - Fetch data from online sources to calculate the ATH percentage for _actual_ asset tickers _(Stocks, ETFs, Cryptos)_.
+
+## Withdrawal Duration Calculator
+
+The application includes a feature to calculate how many years a total wealth amount will last, given specific withdrawal and return parameters.
+
+### How It Works
+
+The withdrawal calculator provides two different approaches to determine how long a total wealth amount will last:
+
+1. **Formula-based calculation**: Uses the mathematical formula `n = -ln(1 - r*P/W) / ln(1 + r)` to calculate the duration directly, where:
+   - n = number of months
+   - r = monthly interest rate (as a decimal)
+   - P = principal (total amount)
+   - W = monthly withdrawal amount
+
+2. **Simulation-based calculation**: Simulates the withdrawal process month by month, adding returns and subtracting withdrawals until the amount reaches zero.
+
+Both methods handle special cases like infinite duration (when returns exceed withdrawals) and zero return rates.
+
+### Usage Example
+
+```json
+{
+    "totalAmount": "1000000.00",
+    "monthlyWithdraw": "5000.00",
+    "expectedYearlyReturn": 4.0
+}
+```
+
+### Response Example
+
+```json
+{
+    "years": 25.15,
+    "isInfinite": false
+}
+```
+
+When returns exceed withdrawals, the money will last indefinitely:
+
+```json
+{
+    "years": Infinity,
+    "isInfinite": true
+}
+```
+
+### Edge Cases Handled
+
+- Zero total amount
+- Zero monthly withdrawal
+- Zero expected return
+- Negative expected return
+- Very small monthly withdrawals
+- Very large monthly withdrawals
+- Cases where returns exceed withdrawals (infinite duration)
+
+## Initial Amount Calculator
+
+The application also includes a feature to calculate the initial amount needed for a specific withdrawal duration.
+
+### How It Works
+
+The initial amount calculator provides two different approaches to determine how much money is needed to last for a specific number of years:
+
+1. **Formula-based calculation**: Rearranges the withdrawal duration formula to solve for the initial amount:
+   `P = W * (1 - (1 + r)^(-n)) / r`, where:
+   - n = number of months
+   - r = monthly interest rate (as a decimal)
+   - P = principal (total amount)
+   - W = monthly withdrawal amount
+
+2. **Simulation-based calculation**: Uses binary search to find the initial amount that will last for the specified duration.
+
+### Usage Example
+
+```json
+{
+    "shouldLastForYears": 30.0,
+    "monthlyWithdraw": "4000.00",
+    "expectedYearlyReturn": 6.0
+}
+```
+
+### Response Example
+
+```json
+{
+    "totalAmount": "752487.56"
+}
+```
+
+### Edge Cases Handled
+
+- Zero years
+- Zero monthly withdrawal
+- Zero expected return
+- Negative expected return
