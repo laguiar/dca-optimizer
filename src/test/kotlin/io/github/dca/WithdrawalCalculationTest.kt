@@ -290,7 +290,7 @@ class WithdrawalCalculationTest {
         val result = simulateWithdrawalDuration(request)
 
         assertFalse { result.isInfinite }
-        expectThat(result.years).isEqualTo(10.17)
+        expectThat(result.years).isEqualTo(10.167)
     }
 
     @Test

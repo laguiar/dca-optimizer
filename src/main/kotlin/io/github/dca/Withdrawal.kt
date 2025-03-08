@@ -2,21 +2,19 @@ package io.github.dca
 
 import java.math.BigDecimal
 import java.math.BigDecimal.ZERO
+import java.math.MathContext.DECIMAL32
 import java.math.RoundingMode.HALF_EVEN
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.exp
 import kotlin.math.ln
 
-private const val maxMonths = 3600 // 300 years as a reasonable upper limit
-private const val safetyMarginPercent = 0.01 // 1% of total amount as safety margin
+private const val MAX_MONTHS = 3600 // 300 years as a reasonable upper limit
+private const val SAFETY_MARGIN = 0.01 // 1% of total amount as safety margin
 private const val MONTHS = 12.0
+private val context = DECIMAL32
 
 // Define a class for the search result
-private data class SearchBounds(
-    val low: BigDecimal,
-    val high: BigDecimal,
-    val isValid: Boolean = true
-)
+private data class SearchBounds(val low: BigDecimal, val high: BigDecimal, val isValid: Boolean = true)
 
 /**
  * Calculates how many years a total wealth amount will last given monthly withdrawals and expected returns.
@@ -50,7 +48,7 @@ fun calculateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdraw
     // If annual returns exceed annual withdrawals by at least the safety margin, money lasts forever
     val annualWithdrawalDouble = monthlyWithdraw.multiply(BigDecimal("12")).toDouble()
     val annualReturnDouble = totalAmount.toDouble() * (yearlyReturn / 100.0)
-    val safetyMarginDouble = totalAmount.toDouble() * safetyMarginPercent
+    val safetyMarginDouble = totalAmount.toDouble() * SAFETY_MARGIN
     
     // Check if returns exceed withdrawals with safety margin
     if (annualReturnDouble - annualWithdrawalDouble >= safetyMarginDouble) {
@@ -62,9 +60,9 @@ fun calculateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdraw
     
     // Special case for zero return
     if (yearlyReturn == 0.0) {
-        val months = totalAmount.divide(monthlyWithdraw, 4, HALF_EVEN)
+        val months = totalAmount.divide(monthlyWithdraw, context)
         return WithdrawalCalculationResponse(
-            years = months.divide(BigDecimal(MONTHS), 2, HALF_EVEN).toDouble(),
+            years = months.divide(BigDecimal(MONTHS), context).toDouble(),
             isInfinite = false
         )
     }
@@ -85,7 +83,7 @@ fun calculateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdraw
     
     // Convert months to years with 2 decimal precision
     val years = BigDecimal(months / MONTHS)
-        .setScale(2, HALF_EVEN)
+        .setScale(context.precision, context.roundingMode)
         .toDouble()
         
     return WithdrawalCalculationResponse(
@@ -95,8 +93,8 @@ fun calculateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdraw
 }
 
 /**
- * Alternative calculation that accounts for the exact monthly compounding
- * This simulates the withdrawal process month by month
+ * Alternative calculation that accounts for the exact monthly compounding.
+ * This simulates the withdrawal process month by month, for a slightly more accurate result.
  */
 fun simulateWithdrawalDuration(request: WithdrawalCalculationRequest): WithdrawalCalculationResponse {
     val totalAmount = request.totalAmount
@@ -123,7 +121,7 @@ fun simulateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdrawa
     // If annual returns exceed annual withdrawals by at least the safety margin, money lasts forever
     val annualWithdrawalDouble = monthlyWithdraw.multiply(BigDecimal("12")).toDouble()
     val annualReturnDouble = totalAmount.toDouble() * (yearlyReturn / 100.0)
-    val safetyMarginDouble = totalAmount.toDouble() * safetyMarginPercent
+    val safetyMarginDouble = totalAmount.toDouble() * SAFETY_MARGIN
     
     // Check if returns exceed withdrawals with safety margin
     if (annualReturnDouble - annualWithdrawalDouble >= safetyMarginDouble) {
@@ -135,10 +133,10 @@ fun simulateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdrawa
     
     // Special case for zero return
     if (yearlyReturn == 0.0) {
-        val months = totalAmount.divide(monthlyWithdraw, 4, HALF_EVEN).toDouble()
+        val months = totalAmount.divide(monthlyWithdraw, context).toDouble()
         return WithdrawalCalculationResponse(
             years = BigDecimal(months / MONTHS)
-                .setScale(2, HALF_EVEN)
+                .setScale(3, context.roundingMode)
                 .toDouble(),
             isInfinite = false
         )
@@ -149,10 +147,10 @@ fun simulateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdrawa
     
     // Define a function to calculate the next state
     fun nextState(state: SimulationState): SimulationState? {
-        if (state.amount <= ZERO || state.month >= maxMonths) return null
+        if (state.amount <= ZERO || state.month >= MAX_MONTHS) return null
         
         val newAmount = state.amount
-            .multiply(BigDecimal(1.0 + monthlyReturn))
+            .multiply(BigDecimal(1.0 + monthlyReturn), context)
             .subtract(monthlyWithdraw)
             
         return SimulationState(newAmount, state.month + 1)
@@ -162,7 +160,7 @@ fun simulateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdrawa
     val finalState = generateSequence(SimulationState(totalAmount, 0), ::nextState).last()
     
     // If we reached the maximum, it effectively lasts forever
-    if (finalState.month >= maxMonths) {
+    if (finalState.month >= MAX_MONTHS) {
         return WithdrawalCalculationResponse(
             years = POSITIVE_INFINITY,
             isInfinite = true
@@ -171,7 +169,7 @@ fun simulateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdrawa
     
     // Convert months to years with 2 decimal precision
     val years = BigDecimal(finalState.month / MONTHS)
-        .setScale(2, HALF_EVEN)
+        .setScale(3, context.roundingMode)
         .toDouble()
         
     return WithdrawalCalculationResponse(
@@ -226,9 +224,12 @@ fun calculateInitialAmount(request: InitialAmountCalculationRequest): InitialAmo
     val totalAmount = monthlyWithdraw.toDouble() * factor / monthlyReturn
     
     return InitialAmountCalculationResponse(
-        totalAmount = BigDecimal(totalAmount).setScale(2, HALF_EVEN)
+        totalAmount = BigDecimal(totalAmount).setScale(context.precision, context.roundingMode)
     )
 }
+
+// Define a data class to represent the search state
+private data class SearchState(val low: BigDecimal, val high: BigDecimal, val attempt: Int = 0)
 
 /**
  * Alternative calculation that uses binary search to find the initial amount needed.
@@ -260,14 +261,7 @@ fun simulateInitialAmount(request: InitialAmountCalculationRequest): InitialAmou
     if (yearlyReturn >= 4.0) {
         return calculateInitialAmount(request)
     }
-    
-    // Define a data class to represent the search state
-    data class SearchState(
-        val low: BigDecimal,
-        val high: BigDecimal,
-        val attempt: Int = 0
-    )
-    
+
     // Function to test if an amount is sufficient
     fun testAmount(amount: BigDecimal): Boolean {
         return try {
@@ -290,22 +284,18 @@ fun simulateInitialAmount(request: InitialAmountCalculationRequest): InitialAmou
     // Function to find a suitable upper bound
     fun findUpperBound(): SearchBounds {
         // Generate a sequence of search states, doubling the high value each time
-        val upperBoundSequence = generateSequence(
-            SearchState(ZERO, initialHigh)
-        ) { state ->
-            if (state.attempt >= maxAttempts || testAmount(state.high)) {
-                null // Stop the sequence
-            } else {
+        val finalState = generateSequence(SearchState(ZERO, initialHigh)) { state ->
+            if (state.attempt < maxAttempts && !testAmount(state.high)) {
                 SearchState(
                     low = state.high,
-                    high = state.high.multiply(BigDecimal("2")),
+                    high = state.high.multiply(BigDecimal("2"), context),
                     attempt = state.attempt + 1
                 )
+            } else {
+                null // Stop the sequence
             }
-        }
-        
-        val finalState = upperBoundSequence.last()
-        
+        }.last()
+
         // If we couldn't find a suitable upper bound, return an invalid result
         if (finalState.attempt >= maxAttempts && !testAmount(finalState.high)) {
             return SearchBounds(finalState.low, finalState.high, isValid = false)
@@ -323,19 +313,18 @@ fun simulateInitialAmount(request: InitialAmountCalculationRequest): InitialAmou
             SearchState(initialLow, initialHigh)
         ) { state ->
             val relativeDifference = state.high.subtract(state.low)
-                .divide(state.high, 4, HALF_EVEN)
+                .divide(state.high, context)
                 .toDouble()
-                
-            if (state.attempt >= maxAttempts || relativeDifference <= tolerance) {
-                null // Stop the sequence
-            } else {
-                val mid = state.low.add(state.high).divide(BigDecimal("2"), 2, HALF_EVEN)
-                
-                if (testAmount(mid)) {
-                    SearchState(state.low, mid, state.attempt + 1)
-                } else {
-                    SearchState(mid, state.high, state.attempt + 1)
+
+            if (state.attempt < maxAttempts && relativeDifference > tolerance) {
+                val mid = state.low.add(state.high).divide(BigDecimal("2"), context)
+
+                when {
+                    testAmount(mid) -> SearchState(state.low, mid, state.attempt + 1)
+                    else -> SearchState(mid, state.high, state.attempt + 1)
                 }
+            } else {
+                null // Stop the sequence
             }
         }
         
