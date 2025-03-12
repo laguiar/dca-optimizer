@@ -374,4 +374,72 @@ class RoutingTest {
             expectThat(responseBody.totalAmount).isEqualTo(BigDecimal.ZERO)
         }
     }
+
+    @Nested
+    @DisplayName("Calculate Advanced Withdrawal Endpoint Tests")
+    inner class CalculateAdvancedWithdrawalEndpointTests {
+        
+        @Test
+        @DisplayName("Should handle advanced withdrawal calculation request")
+        fun testCalculateAdvancedWithdrawalEndpoint() = testApplication {
+            application {
+                module()
+            }
+            
+            val request = AdvancedWithdrawalCalculationRequest(
+                totalAmount = BigDecimal("100000"),
+                monthlyWithdraw = BigDecimal("500"),
+                expectedYearlyReturn = 7.0,
+                yearlyInflationRate = 2.0,
+                yearlyTaxAllowance = BigDecimal("12000"),
+                averageTaxRate = 20.0
+            )
+            
+            val response = client.post("/api/calculate-advanced-withdrawal") {
+                contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(request))
+            }
+            
+            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            
+            val responseBody = json.decodeFromString<AdvancedWithdrawalCalculationResponse>(response.bodyAsText())
+            
+            // Verify we get a reasonable response
+            expectThat(responseBody.years).isGreaterThan(0.0)
+            expectThat(responseBody.realReturn).isEqualTo(5.0) // 7% return - 2% inflation
+            expectThat(responseBody.yearlyBreakdown).isNotNull()
+            expectThat(responseBody.yearlyBreakdown!!).isNotEmpty()
+        }
+        
+        @Test
+        @DisplayName("Should handle advanced withdrawal calculation with high inflation")
+        fun testCalculateAdvancedWithdrawalWithHighInflation() = testApplication {
+            application {
+                module()
+            }
+            
+            val request = AdvancedWithdrawalCalculationRequest(
+                totalAmount = BigDecimal("100000"),
+                monthlyWithdraw = BigDecimal("500"),
+                expectedYearlyReturn = 7.0,
+                yearlyInflationRate = 5.0,
+                yearlyTaxAllowance = BigDecimal("12000"),
+                averageTaxRate = 20.0
+            )
+            
+            val response = client.post("/api/calculate-advanced-withdrawal") {
+                contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(request))
+            }
+            
+            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            
+            val responseBody = json.decodeFromString<AdvancedWithdrawalCalculationResponse>(response.bodyAsText())
+            
+            // With high inflation, real return is lower
+            expectThat(responseBody.realReturn).isEqualTo(2.0) // 7% return - 5% inflation
+            // Final withdrawal amount should be higher due to inflation
+            expectThat(responseBody.inflationAdjustedWithdrawal.compareTo(request.monthlyWithdraw)).isGreaterThan(0)
+        }
+    }
 } 

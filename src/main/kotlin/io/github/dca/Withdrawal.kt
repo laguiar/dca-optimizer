@@ -7,6 +7,7 @@ import java.math.RoundingMode.HALF_EVEN
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.exp
 import kotlin.math.ln
+import kotlin.math.max
 
 private const val MAX_MONTHS = 3600 // 300 years as a reasonable upper limit
 private const val SAFETY_MARGIN = 0.01 // 1% of total amount as safety margin
@@ -46,12 +47,12 @@ fun calculateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdraw
     val monthlyReturn = yearlyReturn / MONTHS / 100.0
     
     // If annual returns exceed annual withdrawals by at least the safety margin, money lasts forever
-    val annualWithdrawalDouble = monthlyWithdraw.multiply(BigDecimal("12")).toDouble()
-    val annualReturnDouble = totalAmount.toDouble() * (yearlyReturn / 100.0)
-    val safetyMarginDouble = totalAmount.toDouble() * SAFETY_MARGIN
+    val annualWithdrawal = monthlyWithdraw.multiply(BigDecimal("12")).toDouble()
+    val annualReturn = totalAmount.toDouble() * (yearlyReturn / 100.0)
+    val safetyMargin = totalAmount.toDouble() * SAFETY_MARGIN
     
     // Check if returns exceed withdrawals with safety margin
-    if (annualReturnDouble - annualWithdrawalDouble >= safetyMarginDouble) {
+    if (annualReturn - annualWithdrawal >= safetyMargin) {
         return WithdrawalCalculationResponse(
             years = POSITIVE_INFINITY,
             isInfinite = true
@@ -119,12 +120,12 @@ fun simulateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdrawa
     val monthlyReturn = yearlyReturn / MONTHS / 100.0
     
     // If annual returns exceed annual withdrawals by at least the safety margin, money lasts forever
-    val annualWithdrawalDouble = monthlyWithdraw.multiply(BigDecimal("12")).toDouble()
-    val annualReturnDouble = totalAmount.toDouble() * (yearlyReturn / 100.0)
-    val safetyMarginDouble = totalAmount.toDouble() * SAFETY_MARGIN
+    val annualWithdrawal = monthlyWithdraw.multiply(BigDecimal("12")).toDouble()
+    val annualReturn = totalAmount.toDouble() * (yearlyReturn / 100.0)
+    val safetyMargin = totalAmount.toDouble() * SAFETY_MARGIN
     
     // Check if returns exceed withdrawals with safety margin
-    if (annualReturnDouble - annualWithdrawalDouble >= safetyMarginDouble) {
+    if (annualReturn - annualWithdrawal >= safetyMargin) {
         return WithdrawalCalculationResponse(
             years = POSITIVE_INFINITY,
             isInfinite = true
@@ -177,6 +178,192 @@ fun simulateWithdrawalDuration(request: WithdrawalCalculationRequest): Withdrawa
         isInfinite = false
     )
 }
+
+/**
+ * Advanced withdrawal calculation that considers inflation, tax allowance, and capital gains tax.
+ * This provides a more realistic simulation of how long money will last by accounting for:
+ * - Inflation eroding purchasing power over time
+ * - Tax-free capital gains allowance
+ * - Capital gains tax on investment returns
+ *
+ * @param request The advanced withdrawal calculation parameters
+ * @return A detailed response with inflation and tax considerations
+ */
+fun calculateAdvancedWithdrawalDuration(request: AdvancedWithdrawalCalculationRequest): AdvancedWithdrawalCalculationResponse {
+    val totalAmount = request.totalAmount
+    val monthlyWithdraw = request.monthlyWithdraw
+    val yearlyReturn = request.expectedYearlyReturn
+    val yearlyInflationRate = request.yearlyInflationRate
+    val yearlyTaxAllowance = request.yearlyTaxAllowance
+    val averageTaxRate = request.averageTaxRate / 100.0 // Convert to decimal
+    
+    // Handle edge cases
+    if (totalAmount <= ZERO) {
+        return AdvancedWithdrawalCalculationResponse(
+            years = 0.0,
+            isInfinite = false,
+            realReturn = 0.0,
+            totalTaxPaid = ZERO,
+            inflationAdjustedWithdrawal = monthlyWithdraw,
+            yearlyBreakdown = emptyList()
+        )
+    }
+    
+    if (monthlyWithdraw <= ZERO) {
+        return AdvancedWithdrawalCalculationResponse(
+            years = POSITIVE_INFINITY,
+            isInfinite = true,
+            realReturn = yearlyReturn - yearlyInflationRate,
+            totalTaxPaid = ZERO,
+            inflationAdjustedWithdrawal = monthlyWithdraw,
+            yearlyBreakdown = emptyList()
+        )
+    }
+    
+    // Calculate real return (nominal return minus inflation)
+    val realReturn = yearlyReturn - yearlyInflationRate
+    
+    // Convert yearly rates to monthly
+    val monthlyNominalReturn = yearlyReturn / MONTHS / 100.0
+    val monthlyInflationRate = yearlyInflationRate / MONTHS / 100.0
+    
+    // Data class to track the simulation state
+    data class SimulationState(
+        val currentBalance: BigDecimal,
+        val month: Int,
+        val year: Int,
+        val yearStartBalance: BigDecimal,
+        val yearReturns: BigDecimal = ZERO,
+        val yearWithdrawals: BigDecimal = ZERO,
+        val yearTaxPaid: BigDecimal = ZERO,
+        val yearInflationImpact: BigDecimal = ZERO,
+        val totalTaxPaid: BigDecimal = ZERO,
+        val currentMonthlyWithdraw: BigDecimal,
+        val yearlyBreakdown: MutableList<YearlyBreakdown> = mutableListOf()
+    )
+    
+    // Function to calculate the next state
+    fun nextState(state: SimulationState): SimulationState? {
+        // Stop if balance is depleted or we've reached the maximum simulation time
+        if (state.currentBalance <= ZERO || state.month >= MAX_MONTHS) return null
+        
+        // Calculate this month's return
+        val monthlyReturn = state.currentBalance.multiply(BigDecimal(monthlyNominalReturn), context)
+        
+        // Adjust withdrawal amount for inflation
+        val inflationAdjustedWithdraw = if (monthlyInflationRate > 0) {
+            state.currentMonthlyWithdraw.multiply(BigDecimal(1.0 + monthlyInflationRate), context)
+        } else state.currentMonthlyWithdraw
+        
+        // Calculate new balance after return and withdrawal
+        val newBalance = state.currentBalance
+            .add(monthlyReturn)
+            .subtract(inflationAdjustedWithdraw)
+        
+        // Track yearly returns and withdrawals
+        val newYearReturns = state.yearReturns.add(monthlyReturn)
+        val newYearWithdrawals = state.yearWithdrawals.add(inflationAdjustedWithdraw)
+        
+        // Calculate inflation impact for this month
+        val inflationImpact = state.currentBalance.multiply(BigDecimal(monthlyInflationRate), context)
+        val newYearInflationImpact = state.yearInflationImpact.add(inflationImpact)
+        
+        // Determine if we're at year-end for tax calculations
+        val isYearEnd = (state.month + 1) % 12 == 0
+        val newMonth = state.month + 1
+        val newYear = if (isYearEnd) state.year + 1 else state.year
+        
+        // Calculate tax at year-end
+        val (newYearTaxPaid, newTotalTaxPaid, yearEndBalance, newYearlyBreakdown) = if (isYearEnd) {
+            // Calculate taxable gains (total returns minus allowance)
+            val taxableGains = max(0.0, newYearReturns.subtract(yearlyTaxAllowance).toDouble())
+            val taxAmount = BigDecimal(taxableGains * averageTaxRate)
+            
+            // Create yearly breakdown entry
+            val breakdown = YearlyBreakdown(
+                year = state.year,
+                startingBalance = state.yearStartBalance,
+                returns = newYearReturns,
+                withdrawals = newYearWithdrawals,
+                taxPaid = taxAmount,
+                inflationImpact = newYearInflationImpact,
+                endingBalance = newBalance
+            )
+            
+            // Add to breakdown list
+            state.yearlyBreakdown.add(breakdown)
+            
+            // Deduct tax from balance
+            val balanceAfterTax = newBalance.subtract(taxAmount)
+            
+            Quadruple(
+                taxAmount,
+                state.totalTaxPaid.add(taxAmount),
+                balanceAfterTax,
+                state.yearlyBreakdown
+            )
+        } else {
+            Quadruple(
+                state.yearTaxPaid,
+                state.totalTaxPaid,
+                newBalance,
+                state.yearlyBreakdown
+            )
+        }
+        
+        // Prepare for next month/year
+        return SimulationState(
+            currentBalance = yearEndBalance,
+            month = newMonth,
+            year = newYear,
+            yearStartBalance = if (isYearEnd) yearEndBalance else state.yearStartBalance,
+            yearReturns = if (isYearEnd) ZERO else newYearReturns,
+            yearWithdrawals = if (isYearEnd) ZERO else newYearWithdrawals,
+            yearTaxPaid = if (isYearEnd) ZERO else newYearTaxPaid,
+            yearInflationImpact = if (isYearEnd) ZERO else newYearInflationImpact,
+            totalTaxPaid = newTotalTaxPaid,
+            currentMonthlyWithdraw = inflationAdjustedWithdraw,
+            yearlyBreakdown = newYearlyBreakdown
+        )
+    }
+    
+    // Run the simulation
+    val initialState = SimulationState(
+        currentBalance = totalAmount,
+        month = 0,
+        year = 1,
+        yearStartBalance = totalAmount,
+        currentMonthlyWithdraw = monthlyWithdraw
+    )
+    
+    val finalState = generateSequence(initialState, ::nextState).last()
+    
+    // Determine if the money lasts indefinitely
+    val isInfinite = finalState.month >= MAX_MONTHS
+    
+    // Calculate years with precision
+    val years = if (isInfinite) {
+        POSITIVE_INFINITY
+    } else {
+        BigDecimal(finalState.month / MONTHS)
+            .setScale(3, context.roundingMode)
+            .toDouble()
+    }
+    
+    return AdvancedWithdrawalCalculationResponse(
+        years = years,
+        isInfinite = isInfinite,
+        realReturn = realReturn,
+        totalTaxPaid = finalState.totalTaxPaid,
+        inflationAdjustedWithdrawal = finalState.currentMonthlyWithdraw,
+        yearlyBreakdown = finalState.yearlyBreakdown
+    )
+}
+
+/**
+ * Utility class to return four values from a function.
+ */
+private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
 /**
  * Calculates the initial amount needed for a specific withdrawal duration.

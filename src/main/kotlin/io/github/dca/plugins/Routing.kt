@@ -1,24 +1,13 @@
 package io.github.dca.plugins
 
-import io.github.dca.DcaRequest
-import io.github.dca.DcaResponse
-import io.github.dca.Distribution
-import io.github.dca.InitialAmountCalculationRequest
-import io.github.dca.StrategyType
-import io.github.dca.WithdrawalCalculationRequest
-import io.github.dca.calculateInitialAmount
-import io.github.dca.calculateWithdrawalDuration
-import io.github.dca.distributeByRating
-import io.github.dca.distributeByTarget
-import io.github.dca.simulateWithdrawalDuration
+import io.github.dca.*
 import io.github.dca.strategy.distributeByPortfolio
 import io.github.dca.strategy.distributeByWeight
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.routing.post
-import io.ktor.server.routing.routing
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
     routing {
@@ -33,6 +22,10 @@ fun Application.configureRouting() {
         post("/api/calculate-withdrawal") {
             call.receive<WithdrawalCalculationRequest>()
                 .let { call.respond(HttpStatusCode.OK, calculateWithdrawalDuration(it)) }
+        }
+        post("/api/calculate-advanced-withdrawal") {
+            call.receive<AdvancedWithdrawalCalculationRequest>()
+                .let { call.respond(HttpStatusCode.OK, calculateAdvancedWithdrawalDuration(it)) }
         }
         post("/api/calculate-target-amount") {
             call.receive<InitialAmountCalculationRequest>()

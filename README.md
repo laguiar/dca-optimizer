@@ -134,14 +134,6 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 }
 ```
 
-### TODOs
-
-- Add instructions to run the application locally or using a docker image.
-- Add a configuration option to consider the ATH distance in the calculations.
-- Payload validations.
-- Make it available via docker image.
-- Fetch data from online sources to calculate the ATH percentage for _actual_ asset tickers _(Stocks, ETFs, Cryptos)_.
-
 ## Withdrawal Duration Calculator
 
 The application includes a feature to calculate how many years a total wealth amount will last, given specific withdrawal and return parameters.
@@ -239,3 +231,116 @@ The initial amount calculator provides two different approaches to determine how
 - Zero monthly withdrawal
 - Zero expected return
 - Negative expected return
+
+## Advanced Withdrawal Calculator
+
+The application includes an enhanced withdrawal calculator that accounts for inflation and taxes, providing a more realistic projection of financial longevity.
+
+### How It Works
+
+The advanced withdrawal calculator extends the basic withdrawal calculation by incorporating:
+
+1. **Inflation Adjustment**: Reduces the purchasing power of money over time and increases the withdrawal amount annually to maintain the same real value.
+
+2. **Tax Considerations**: Calculates tax on investment returns based on a yearly tax allowance and average tax rate, reducing the effective return.
+
+3. **Real Return Calculation**: Determines the effective return rate after accounting for both inflation and taxes.
+
+4. **Yearly Breakdown**: Provides a detailed year-by-year analysis of the portfolio, showing starting balance, returns, withdrawals, tax paid, inflation impact, and ending balance.
+
+### Usage Example
+
+```json
+{
+  "totalAmount": 100000.00,
+  "monthlyWithdraw": 500.00,
+  "expectedYearlyReturn": 7.0,
+  "yearlyInflationRate": 2.0,
+  "yearlyTaxAllowance": 12000.00,
+  "averageTaxRate": 20.0
+}
+```
+
+### Response Example
+
+```json
+{
+  "years": 18.75,
+  "isInfinite": false,
+  "realReturn": 3.6,
+  "totalTaxPaid": 2345.67,
+  "inflationAdjustedWithdrawal": 750.23,
+  "yearlyBreakdown": [
+    {
+      "year": 1,
+      "startingBalance": 100000.00,
+      "returns": 7000.00,
+      "withdrawals": 6000.00,
+      "taxPaid": 0.00,
+      "inflationImpact": 2000.00,
+      "endingBalance": 99000.00
+    },
+    // Additional years...
+  ]
+}
+```
+
+### Edge Cases Handled
+
+- Zero total amount
+- Zero monthly withdrawal
+- Zero expected return
+- High inflation scenarios
+- Cases where real returns (after inflation and taxes) exceed withdrawals (infinite duration)
+- Various tax scenarios including zero tax and high tax rates
+
+### Key Benefits
+
+- More realistic financial planning by accounting for inflation
+- Tax-aware calculations for better retirement planning
+- Detailed yearly breakdown for deeper analysis
+- Comparison between nominal and real (inflation-adjusted) returns
+
+## API Endpoints
+
+The application provides the following API endpoints:
+
+### DCA Optimization
+
+`POST /api/optimize`
+
+Optimizes dollar-cost averaging distribution based on the selected strategy.
+
+### Basic Withdrawal Calculation
+
+`POST /api/calculate-withdrawal`
+
+Calculates how long a total amount will last with regular withdrawals and expected returns.
+
+### Advanced Withdrawal Calculation
+
+`POST /api/calculate-advanced-withdrawal`
+
+Calculates how long a total amount will last, accounting for inflation and taxes.
+
+### Initial Amount Calculation
+
+`POST /api/calculate-target-amount`
+
+Calculates the initial amount needed to sustain withdrawals for a specific duration.
+
+## Running the Application
+
+### Prerequisites
+
+- JDK 21 or higher
+- Gradle
+
+### Local Development
+
+1. Clone the repository
+2. Run the application:
+   ```bash
+   ./gradlew run
+   ```
+3. The application APIs will be available at `http://localhost:8080`

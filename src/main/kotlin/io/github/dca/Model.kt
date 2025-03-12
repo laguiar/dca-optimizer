@@ -29,6 +29,68 @@ data class WithdrawalCalculationResponse(
     val isInfinite: Boolean
 )
 
+/**
+ * Advanced withdrawal calculation request that includes inflation and tax considerations.
+ * 
+ * @param totalAmount The initial total amount available for withdrawal
+ * @param monthlyWithdraw The amount to withdraw each month
+ * @param expectedYearlyReturn The expected annual return rate as a percentage
+ * @param yearlyInflationRate The annual inflation rate as a percentage
+ * @param yearlyTaxAllowance The annual tax-free capital gains allowance
+ * @param averageTaxRate The average tax rate applied to capital gains exceeding the allowance
+ */
+@Serializable
+data class AdvancedWithdrawalCalculationRequest(
+    val totalAmount: BigDecimalNumber,
+    val monthlyWithdraw: BigDecimalNumber,
+    val expectedYearlyReturn: Double,
+    val yearlyInflationRate: Double = 0.0,
+    val yearlyTaxAllowance: BigDecimalNumber = BigDecimal.ZERO,
+    val averageTaxRate: Double = 0.0
+)
+
+/**
+ * Response for advanced withdrawal calculation that includes detailed information.
+ * 
+ * @param years The number of years the money will last
+ * @param isInfinite Whether the money will last indefinitely
+ * @param realReturn The real return rate after inflation
+ * @param totalTaxPaid The total amount of tax paid over the withdrawal period
+ * @param inflationAdjustedWithdrawal The final monthly withdrawal amount adjusted for inflation
+ * @param yearlyBreakdown Optional detailed breakdown of calculations by year
+ */
+@Serializable
+data class AdvancedWithdrawalCalculationResponse(
+    val years: Double,
+    val isInfinite: Boolean,
+    val realReturn: Double,
+    val totalTaxPaid: BigDecimalNumber,
+    val inflationAdjustedWithdrawal: BigDecimalNumber,
+    val yearlyBreakdown: List<YearlyBreakdown>? = null
+)
+
+/**
+ * Detailed breakdown of calculations for a specific year.
+ * 
+ * @param year The year number (1-based)
+ * @param startingBalance The balance at the start of the year
+ * @param returns The investment returns earned during the year
+ * @param withdrawals The total withdrawals made during the year
+ * @param taxPaid The tax paid on capital gains during the year
+ * @param inflationImpact The impact of inflation on purchasing power
+ * @param endingBalance The balance at the end of the year
+ */
+@Serializable
+data class YearlyBreakdown(
+    val year: Int,
+    val startingBalance: BigDecimalNumber,
+    val returns: BigDecimalNumber,
+    val withdrawals: BigDecimalNumber,
+    val taxPaid: BigDecimalNumber,
+    val inflationImpact: BigDecimalNumber,
+    val endingBalance: BigDecimalNumber
+)
+
 @Serializable
 data class InitialAmountCalculationRequest(
     val shouldLastForYears: Double,
