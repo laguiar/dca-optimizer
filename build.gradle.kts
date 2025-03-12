@@ -38,9 +38,9 @@ dependencies {
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
-    testImplementation("io.mockk:mockk:1.13.11")
-    testImplementation("io.strikt:strikt-core:0.34.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.12.0")
+    testImplementation("io.mockk:mockk:1.13.17")
+    testImplementation("io.strikt:strikt-core:0.35.1")
 }
 
 java {
@@ -51,10 +51,6 @@ java {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_21)
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
-            vendor.set(JvmVendorSpec.ADOPTIUM)
-        }
     }
 }
 
