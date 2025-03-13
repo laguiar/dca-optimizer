@@ -1,5 +1,7 @@
-package io.github.dca
+package io.github.dca.withdrawal
 
+import io.github.dca.AdvancedWithdrawalCalculationRequest
+import io.github.dca.WithdrawalCalculationRequest
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.assertions.*
@@ -23,7 +25,7 @@ class AdvancedWithdrawalCalculationTest {
         )
 
         val result = calculateAdvancedWithdrawalDuration(request)
-        
+
         expect {
             that(result.isInfinite).isFalse()
             that(result.years).isGreaterThan(0.0)
@@ -46,7 +48,7 @@ class AdvancedWithdrawalCalculationTest {
         )
 
         val result = calculateAdvancedWithdrawalDuration(request)
-        
+
         expect {
             that(result.isInfinite).isFalse()
             that(result.years).isGreaterThan(0.0)
@@ -69,7 +71,7 @@ class AdvancedWithdrawalCalculationTest {
         )
 
         val result = calculateAdvancedWithdrawalDuration(request)
-        
+
         expect {
             that(result.isInfinite).isTrue()
             // Real return should be nominal return minus inflation
@@ -89,22 +91,22 @@ class AdvancedWithdrawalCalculationTest {
         )
 
         val result = calculateAdvancedWithdrawalDuration(request)
-        
+
         expect {
             that(result.yearlyBreakdown).isNotNull()
             that(result.yearlyBreakdown!!).isNotEmpty()
-            
+
             // First year should start with the initial amount
             val firstYear = result.yearlyBreakdown!!.first()
             that(firstYear.year).isEqualTo(1)
             that(firstYear.startingBalance).isEqualTo(request.totalAmount)
-            
+
             // Each year should have some returns
             that(firstYear.returns.compareTo(BigDecimal.ZERO)).isGreaterThan(0)
-            
+
             // Each year should have withdrawals
             that(firstYear.withdrawals.compareTo(BigDecimal.ZERO)).isGreaterThan(0)
-            
+
             // Should have some inflation impact
             that(firstYear.inflationImpact.compareTo(BigDecimal.ZERO)).isGreaterThan(0)
         }
@@ -122,7 +124,7 @@ class AdvancedWithdrawalCalculationTest {
         )
 
         val result = calculateAdvancedWithdrawalDuration(request)
-        
+
         expect {
             that(result.isInfinite).isFalse()
             that(result.years).isEqualTo(0.0)
@@ -142,7 +144,7 @@ class AdvancedWithdrawalCalculationTest {
         )
 
         val result = calculateAdvancedWithdrawalDuration(request)
-        
+
         expect {
             that(result.isInfinite).isTrue()
             that(result.totalTaxPaid).isEqualTo(BigDecimal.ZERO)
@@ -161,7 +163,7 @@ class AdvancedWithdrawalCalculationTest {
         )
 
         val result = calculateAdvancedWithdrawalDuration(request)
-        
+
         expect {
             // Final withdrawal amount should be higher than initial due to inflation
             that(result.inflationAdjustedWithdrawal.compareTo(request.monthlyWithdraw)).isGreaterThan(0)
@@ -176,7 +178,7 @@ class AdvancedWithdrawalCalculationTest {
             monthlyWithdraw = BigDecimal("5000"),
             expectedYearlyReturn = 7.0
         )
-        
+
         // Advanced request with the same parameters but no inflation or tax
         val advancedRequest = AdvancedWithdrawalCalculationRequest(
             totalAmount = BigDecimal("1000000"),
@@ -186,14 +188,14 @@ class AdvancedWithdrawalCalculationTest {
             yearlyTaxAllowance = BigDecimal.ZERO,
             averageTaxRate = 0.0
         )
-        
+
         val basicResult = calculateWithdrawalDuration(basicRequest)
         val advancedResult = calculateAdvancedWithdrawalDuration(advancedRequest)
-        
+
         expect {
             // Both should agree on whether it's infinite
             that(basicResult.isInfinite).isEqualTo(advancedResult.isInfinite)
-            
+
             // If finite, they should be reasonably close (within 5% of each other)
             if (!basicResult.isInfinite && !advancedResult.isInfinite) {
                 val percentDifference = abs(basicResult.years - advancedResult.years) / basicResult.years * 100
@@ -201,4 +203,4 @@ class AdvancedWithdrawalCalculationTest {
             }
         }
     }
-} 
+}

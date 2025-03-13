@@ -3,6 +3,10 @@ package io.github.dca.plugins
 import io.github.dca.*
 import io.github.dca.strategy.distributeByPortfolio
 import io.github.dca.strategy.distributeByWeight
+import io.github.dca.withdrawal.calculateAdvancedWithdrawalDuration
+import io.github.dca.withdrawal.calculateInitialAmount
+import io.github.dca.withdrawal.calculateWithdrawalDuration
+import io.github.dca.withdrawal.simulateWithdrawalDuration
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*

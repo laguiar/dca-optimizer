@@ -1,5 +1,7 @@
-package io.github.dca
+package io.github.dca.withdrawal
 
+import io.github.dca.InitialAmountCalculationRequest
+import io.github.dca.WithdrawalCalculationRequest
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.api.expectThat

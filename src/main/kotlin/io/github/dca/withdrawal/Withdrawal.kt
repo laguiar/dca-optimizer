@@ -1,5 +1,6 @@
-package io.github.dca
+package io.github.dca.withdrawal
 
+import io.github.dca.*
 import java.math.BigDecimal
 import java.math.BigDecimal.ZERO
 import java.math.MathContext.DECIMAL32
@@ -7,7 +8,6 @@ import java.math.RoundingMode.HALF_EVEN
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.exp
 import kotlin.math.ln
-import kotlin.math.max
 
 private const val MAX_MONTHS = 3600 // 300 years as a reasonable upper limit
 private const val SAFETY_MARGIN = 0.01 // 1% of total amount as safety margin
@@ -226,22 +226,7 @@ fun calculateAdvancedWithdrawalDuration(request: AdvancedWithdrawalCalculationRe
     // Convert yearly rates to monthly
     val monthlyNominalReturn = yearlyReturn / MONTHS / 100.0
     val monthlyInflationRate = yearlyInflationRate / MONTHS / 100.0
-    
-    // Data class to track the simulation state
-    data class SimulationState(
-        val currentBalance: BigDecimal,
-        val month: Int,
-        val year: Int,
-        val yearStartBalance: BigDecimal,
-        val yearReturns: BigDecimal = ZERO,
-        val yearWithdrawals: BigDecimal = ZERO,
-        val yearTaxPaid: BigDecimal = ZERO,
-        val yearInflationImpact: BigDecimal = ZERO,
-        val totalTaxPaid: BigDecimal = ZERO,
-        val currentMonthlyWithdraw: BigDecimal,
-        val yearlyBreakdown: MutableList<YearlyBreakdown> = mutableListOf()
-    )
-    
+
     // Function to calculate the next state
     fun nextState(state: SimulationState): SimulationState? {
         // Stop if balance is depleted or we've reached the maximum simulation time
@@ -274,42 +259,16 @@ fun calculateAdvancedWithdrawalDuration(request: AdvancedWithdrawalCalculationRe
         val newYear = if (isYearEnd) state.year + 1 else state.year
         
         // Calculate tax at year-end
-        val (newYearTaxPaid, newTotalTaxPaid, yearEndBalance, newYearlyBreakdown) = if (isYearEnd) {
-            // Calculate taxable gains (total returns minus allowance)
-            val taxableGains = max(0.0, newYearReturns.subtract(yearlyTaxAllowance).toDouble())
-            val taxAmount = BigDecimal(taxableGains * averageTaxRate)
-            
-            // Create yearly breakdown entry
-            val breakdown = YearlyBreakdown(
-                year = state.year,
-                startingBalance = state.yearStartBalance,
-                returns = newYearReturns,
-                withdrawals = newYearWithdrawals,
-                taxPaid = taxAmount,
-                inflationImpact = newYearInflationImpact,
-                endingBalance = newBalance
-            )
-            
-            // Add to breakdown list
-            state.yearlyBreakdown.add(breakdown)
-            
-            // Deduct tax from balance
-            val balanceAfterTax = newBalance.subtract(taxAmount)
-            
-            Quadruple(
-                taxAmount,
-                state.totalTaxPaid.add(taxAmount),
-                balanceAfterTax,
-                state.yearlyBreakdown
-            )
-        } else {
-            Quadruple(
-                state.yearTaxPaid,
-                state.totalTaxPaid,
-                newBalance,
-                state.yearlyBreakdown
-            )
-        }
+        val (newYearTaxPaid, newTotalTaxPaid, yearEndBalance, newYearlyBreakdown) = taxAndBreakdownCalculation(
+            isYearEnd,
+            newYearReturns,
+            state,
+            newYearWithdrawals,
+            newYearInflationImpact,
+            newBalance,
+            yearlyTaxAllowance,
+            averageTaxRate
+        )
         
         // Prepare for next month/year
         return SimulationState(
@@ -359,11 +318,6 @@ fun calculateAdvancedWithdrawalDuration(request: AdvancedWithdrawalCalculationRe
         yearlyBreakdown = finalState.yearlyBreakdown
     )
 }
-
-/**
- * Utility class to return four values from a function.
- */
-private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
 /**
  * Calculates the initial amount needed for a specific withdrawal duration.
