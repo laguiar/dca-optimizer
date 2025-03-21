@@ -5,12 +5,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val ktorVersion: String by project
 val kotlinVersion: String by project
 val logbackVersion: String by project
+val junitVersion: String by project
 
 plugins {
     application
-    kotlin("jvm") version "2.1.10"
+    kotlin("jvm") version "2.1.20"
     id("io.ktor.plugin") version "3.1.1"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20"
 }
 
 group = "io.github"
@@ -38,7 +39,7 @@ dependencies {
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.12.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
     testImplementation("io.mockk:mockk:1.13.17")
     testImplementation("io.strikt:strikt-core:0.35.1")
 }
