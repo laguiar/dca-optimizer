@@ -413,7 +413,7 @@ fun simulateInitialAmount(request: InitialAmountCalculationRequest): InitialAmou
             )
             val result = calculateWithdrawalDuration(testRequest)
             result.isInfinite || result.years >= years
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
@@ -483,7 +483,7 @@ fun simulateInitialAmount(request: InitialAmountCalculationRequest): InitialAmou
             // Fall back to formula calculation
             calculateInitialAmount(request)
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Fall back to formula calculation if any errors occur
         calculateInitialAmount(request)
     }

@@ -8,10 +8,9 @@ val logbackVersion: String by project
 val junitVersion: String by project
 
 plugins {
-    application
-    kotlin("jvm") version "2.1.21"
-    id("io.ktor.plugin") version "3.1.3"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
+    kotlin("jvm") version "2.2.0"
+    id("io.ktor.plugin") version "3.2.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
 }
 
 group = "io.github"
@@ -40,8 +39,7 @@ dependencies {
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
     testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
-    testImplementation("io.mockk:mockk:1.13.17")
+    testImplementation("io.mockk:mockk:1.14.4")
     testImplementation("io.strikt:strikt-core:0.35.1")
 }
 
