@@ -2,15 +2,10 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
 import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-val ktorVersion: String by project
-val kotlinVersion: String by project
-val logbackVersion: String by project
-val junitVersion: String by project
-
 plugins {
-    kotlin("jvm") version "2.2.0"
-    id("io.ktor.plugin") version "3.2.0"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ktor)
+    alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 group = "io.github"
@@ -27,20 +22,18 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-server-compression-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
-    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.logback.classic)
 
-    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
-    testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-    testImplementation("io.mockk:mockk:1.14.4")
-    testImplementation("io.strikt:strikt-core:0.35.1")
+    testImplementation(libs.kotlin.test.junit5)
+    testImplementation(libs.ktor.server.test.host)
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.ktor.client.content.negotiation)
+    testImplementation(libs.mockk)
+    testImplementation(libs.strikt.core)
 }
 
 java {
