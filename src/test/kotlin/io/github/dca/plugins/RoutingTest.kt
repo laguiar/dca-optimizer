@@ -1,6 +1,13 @@
 package io.github.dca.plugins
 
 import io.github.dca.*
+import io.kotest.matchers.doubles.shouldBeGreaterThan
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.maps.beEmpty
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
+import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -9,8 +16,6 @@ import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import strikt.api.expectThat
-import strikt.assertions.*
 import java.math.BigDecimal
 
 /**
@@ -52,13 +57,12 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<DcaResponse>(response.bodyAsText())
             
-            expectThat(responseBody.distribution)
-                .isNotEmpty()
-                .containsKey("BTC")
+            responseBody.distribution shouldNot beEmpty()
+            responseBody.distribution shouldContainKey("BTC")
         }
         
         @Test
@@ -89,14 +93,13 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<DcaResponse>(response.bodyAsText())
-            
-            expectThat(responseBody.distribution)
-                .isNotEmpty()
-                .containsKey("BTC")
-                .containsKey("ETH")
+
+            responseBody.distribution shouldNot beEmpty()
+            responseBody.distribution shouldContainKey("BTC")
+            responseBody.distribution shouldContainKey("ETH")
         }
         
         @Test
@@ -129,14 +132,13 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<DcaResponse>(response.bodyAsText())
-            
-            expectThat(responseBody.distribution)
-                .isNotEmpty()
-                .containsKey("BTC")
-                .containsKey("ETH")
+
+            responseBody.distribution shouldNot beEmpty()
+            responseBody.distribution shouldContainKey("BTC")
+            responseBody.distribution shouldContainKey("ETH")
         }
         
         @Test
@@ -166,14 +168,13 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<DcaResponse>(response.bodyAsText())
-            
-            expectThat(responseBody.distribution)
-                .isNotEmpty()
-                .containsKey("BTC")
-                .containsKey("ETH")
+
+            responseBody.distribution shouldNot beEmpty()
+            responseBody.distribution shouldContainKey("BTC")
+            responseBody.distribution shouldContainKey("ETH")
         }
         
         // Note: The following tests for unimplemented strategies would ideally test for exceptions,
@@ -203,12 +204,12 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<WithdrawalCalculationResponse>(response.bodyAsText())
             
             // Verify we get a reasonable response
-            expectThat(responseBody.years).isGreaterThan(0.0)
+            responseBody.years shouldBeGreaterThan 0.0
         }
         
         @Test
@@ -229,12 +230,12 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<WithdrawalCalculationResponse>(response.bodyAsText())
             
-            expectThat(responseBody.years).isEqualTo(0.0)
-            expectThat(responseBody.isInfinite).isEqualTo(false)
+            responseBody.years shouldBe 0.0
+            responseBody.isInfinite shouldBe false
         }
         
         @Test
@@ -255,11 +256,11 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<WithdrawalCalculationResponse>(response.bodyAsText())
             
-            expectThat(responseBody.isInfinite).isTrue()
+            responseBody.isInfinite shouldBe true
         }
     }
     
@@ -285,12 +286,12 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<WithdrawalCalculationResponse>(response.bodyAsText())
             
             // Verify we get a reasonable response
-            expectThat(responseBody.years).isGreaterThan(0.0)
+            responseBody.years shouldBeGreaterThan 0.0
         }
         
         @Test
@@ -311,11 +312,11 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<WithdrawalCalculationResponse>(response.bodyAsText())
             
-            expectThat(responseBody.isInfinite).isTrue()
+            responseBody.isInfinite shouldBe true
         }
     }
     
@@ -341,12 +342,12 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<InitialAmountCalculationResponse>(response.bodyAsText())
             
             // Verify we get a reasonable response
-            expectThat(responseBody.totalAmount.compareTo(BigDecimal.ZERO)).isGreaterThan(0)
+            responseBody.totalAmount.compareTo(BigDecimal.ZERO) shouldBeGreaterThan 0
         }
         
         @Test
@@ -367,11 +368,11 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<InitialAmountCalculationResponse>(response.bodyAsText())
             
-            expectThat(responseBody.totalAmount).isEqualTo(BigDecimal.ZERO)
+            responseBody.totalAmount shouldBe BigDecimal.ZERO
         }
     }
 
@@ -400,15 +401,15 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<AdvancedWithdrawalCalculationResponse>(response.bodyAsText())
             
             // Verify we get a reasonable response
-            expectThat(responseBody.years).isGreaterThan(0.0)
-            expectThat(responseBody.realReturn).isEqualTo(5.0) // 7% return - 2% inflation
-            expectThat(responseBody.yearlyBreakdown).isNotNull()
-            expectThat(responseBody.yearlyBreakdown!!).isNotEmpty()
+            responseBody.years shouldBeGreaterThan 0.0
+            responseBody.realReturn shouldBe 5.0 // 7% return - 2% inflation
+            responseBody.yearlyBreakdown shouldNotBe null
+            responseBody.yearlyBreakdown!! shouldNot io.kotest.matchers.collections.beEmpty()
         }
         
         @Test
@@ -432,14 +433,14 @@ class RoutingTest {
                 setBody(json.encodeToString(request))
             }
             
-            expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+            response.status shouldBe HttpStatusCode.OK
             
             val responseBody = json.decodeFromString<AdvancedWithdrawalCalculationResponse>(response.bodyAsText())
             
             // With high inflation, real return is lower
-            expectThat(responseBody.realReturn).isEqualTo(2.0) // 7% return - 5% inflation
+            responseBody.realReturn shouldBe 2.0 // 7% return - 5% inflation
             // Final withdrawal amount should be higher due to inflation
-            expectThat(responseBody.inflationAdjustedWithdrawal.compareTo(request.monthlyWithdraw)).isGreaterThan(0)
+            responseBody.inflationAdjustedWithdrawal.compareTo(request.monthlyWithdraw) shouldBeGreaterThan 0
         }
     }
 } 

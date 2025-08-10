@@ -2,9 +2,13 @@ package io.github.dca.withdrawal
 
 import io.github.dca.AdvancedWithdrawalCalculationRequest
 import io.github.dca.WithdrawalCalculationRequest
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.comparables.shouldBeLessThan
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
+import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
-import strikt.api.expect
-import strikt.assertions.*
 import java.math.BigDecimal
 import kotlin.math.abs
 
@@ -26,14 +30,11 @@ class AdvancedWithdrawalCalculationTest {
 
         val result = calculateAdvancedWithdrawalDuration(request)
 
-        expect {
-            that(result.isInfinite).isFalse()
-            that(result.years).isGreaterThan(0.0)
-            // Real return should be nominal return minus inflation
-            that(result.realReturn).isEqualTo(5.0)
-            // With inflation, duration should be shorter than without inflation
-            // but we don't need to check the exact value
-        }
+        result.isInfinite shouldBe false
+        result.years shouldBeGreaterThan 0.0
+        // Real return should be nominal return minus inflation
+        result.realReturn shouldBe 5.0
+        // With inflation, duration should be shorter than without inflation
     }
 
     @Test
@@ -49,14 +50,12 @@ class AdvancedWithdrawalCalculationTest {
 
         val result = calculateAdvancedWithdrawalDuration(request)
 
-        expect {
-            that(result.isInfinite).isFalse()
-            that(result.years).isGreaterThan(0.0)
-            // Should have paid some tax
-            that(result.totalTaxPaid.compareTo(BigDecimal.ZERO)).isGreaterThan(0)
-            // With tax, duration should be shorter than without tax
-            // but we don't need to check the exact value
-        }
+        result.isInfinite shouldBe false
+        result.years shouldBeGreaterThan 0.0
+        // Should have paid some tax
+        result.totalTaxPaid.compareTo(BigDecimal.ZERO) shouldBeGreaterThan 0
+        // With tax, duration should be shorter than without tax
+        // but we don't need to check the exact value
     }
 
     @Test
@@ -72,11 +71,9 @@ class AdvancedWithdrawalCalculationTest {
 
         val result = calculateAdvancedWithdrawalDuration(request)
 
-        expect {
-            that(result.isInfinite).isTrue()
-            // Real return should be nominal return minus inflation
-            that(result.realReturn).isEqualTo(5.0)
-        }
+        result.isInfinite shouldBe true
+        // Real return should be nominal return minus inflation
+        result.realReturn shouldBe 5.0
     }
 
     @Test
@@ -92,24 +89,22 @@ class AdvancedWithdrawalCalculationTest {
 
         val result = calculateAdvancedWithdrawalDuration(request)
 
-        expect {
-            that(result.yearlyBreakdown).isNotNull()
-            that(result.yearlyBreakdown!!).isNotEmpty()
+        result.yearlyBreakdown shouldNotBe null
+        result.yearlyBreakdown!! shouldNot beEmpty()
 
-            // First year should start with the initial amount
-            val firstYear = result.yearlyBreakdown!!.first()
-            that(firstYear.year).isEqualTo(1)
-            that(firstYear.startingBalance).isEqualTo(request.totalAmount)
+        // First year should start with the initial amount
+        val firstYear = result.yearlyBreakdown.first()
+        firstYear.year shouldBe 1
+        firstYear.startingBalance shouldBe request.totalAmount
 
-            // Each year should have some returns
-            that(firstYear.returns.compareTo(BigDecimal.ZERO)).isGreaterThan(0)
+        // Each year should have some returns
+        firstYear.returns.compareTo(BigDecimal.ZERO) shouldBeGreaterThan 0
 
-            // Each year should have withdrawals
-            that(firstYear.withdrawals.compareTo(BigDecimal.ZERO)).isGreaterThan(0)
+        // Each year should have withdrawals
+        firstYear.withdrawals.compareTo(BigDecimal.ZERO) shouldBeGreaterThan 0
 
-            // Should have some inflation impact
-            that(firstYear.inflationImpact.compareTo(BigDecimal.ZERO)).isGreaterThan(0)
-        }
+        // Should have some inflation impact
+        firstYear.inflationImpact.compareTo(BigDecimal.ZERO) shouldBeGreaterThan 0
     }
 
     @Test
@@ -125,11 +120,9 @@ class AdvancedWithdrawalCalculationTest {
 
         val result = calculateAdvancedWithdrawalDuration(request)
 
-        expect {
-            that(result.isInfinite).isFalse()
-            that(result.years).isEqualTo(0.0)
-            that(result.totalTaxPaid).isEqualTo(BigDecimal.ZERO)
-        }
+        result.isInfinite shouldBe false
+        result.years shouldBe 0.0
+        result.totalTaxPaid shouldBe BigDecimal.ZERO
     }
 
     @Test
@@ -145,10 +138,8 @@ class AdvancedWithdrawalCalculationTest {
 
         val result = calculateAdvancedWithdrawalDuration(request)
 
-        expect {
-            that(result.isInfinite).isTrue()
-            that(result.totalTaxPaid).isEqualTo(BigDecimal.ZERO)
-        }
+        result.isInfinite shouldBe true
+        result.totalTaxPaid shouldBe BigDecimal.ZERO
     }
 
     @Test
@@ -164,10 +155,8 @@ class AdvancedWithdrawalCalculationTest {
 
         val result = calculateAdvancedWithdrawalDuration(request)
 
-        expect {
-            // Final withdrawal amount should be higher than initial due to inflation
-            that(result.inflationAdjustedWithdrawal.compareTo(request.monthlyWithdraw)).isGreaterThan(0)
-        }
+        // Final withdrawal amount should be higher than initial due to inflation
+        result.inflationAdjustedWithdrawal.compareTo(request.monthlyWithdraw) shouldBeGreaterThan 0
     }
 
     @Test
@@ -192,15 +181,13 @@ class AdvancedWithdrawalCalculationTest {
         val basicResult = calculateWithdrawalDuration(basicRequest)
         val advancedResult = calculateAdvancedWithdrawalDuration(advancedRequest)
 
-        expect {
-            // Both should agree on whether it's infinite
-            that(basicResult.isInfinite).isEqualTo(advancedResult.isInfinite)
+        // Both should agree on whether it's infinite
+        basicResult.isInfinite shouldBe advancedResult.isInfinite
 
-            // If finite, they should be reasonably close (within 5% of each other)
-            if (!basicResult.isInfinite && !advancedResult.isInfinite) {
-                val percentDifference = abs(basicResult.years - advancedResult.years) / basicResult.years * 100
-                that(percentDifference < 5.0).isTrue()
-            }
+        // If finite, they should be reasonably close (within 5% of each other)
+        if (!basicResult.isInfinite && !advancedResult.isInfinite) {
+            val percentDifference = abs(basicResult.years - advancedResult.years) / basicResult.years * 100
+            percentDifference shouldBeLessThan 5.0
         }
     }
 }

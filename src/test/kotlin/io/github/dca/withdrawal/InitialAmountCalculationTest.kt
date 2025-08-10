@@ -2,12 +2,9 @@ package io.github.dca.withdrawal
 
 import io.github.dca.InitialAmountCalculationRequest
 import io.github.dca.WithdrawalCalculationRequest
+import io.kotest.matchers.doubles.shouldBeGreaterThanOrEqual
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import strikt.api.expect
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
 import java.math.BigDecimal
 import kotlin.math.abs
 
@@ -24,7 +21,7 @@ class InitialAmountCalculationTest {
         val result = calculateInitialAmount(request)
         
         // With zero return, it's just monthly withdraw * months
-        expectThat(result.totalAmount).isEqualTo(BigDecimal("120000.00"))
+        result.totalAmount shouldBe BigDecimal("120000.00")
     }
 
     @Test
@@ -46,10 +43,8 @@ class InitialAmountCalculationTest {
         
         val duration = calculateWithdrawalDuration(verificationRequest)
         
-        expect {
-            that(duration.isInfinite).isFalse()
-            that(abs(duration.years - 30.0) < 0.1).isTrue() // Within 0.1 years
-        }
+        duration.isInfinite shouldBe false
+        (abs(duration.years - 30.0) < 0.1) shouldBe true // Within 0.1 years
     }
 
     @Test
@@ -71,10 +66,8 @@ class InitialAmountCalculationTest {
         
         val duration = calculateWithdrawalDuration(verificationRequest)
         
-        expect {
-            that(duration.isInfinite).isFalse()
-            that(abs(duration.years - 5.0) < 0.1).isTrue() // Within 0.1 years
-        }
+        duration.isInfinite shouldBe false
+        (abs(duration.years - 5.0) < 0.1) shouldBe true // Within 0.1 years
     }
 
     @Test
@@ -87,7 +80,7 @@ class InitialAmountCalculationTest {
 
         val result = calculateInitialAmount(request)
         
-        expectThat(result.totalAmount).isEqualTo(BigDecimal.ZERO)
+        result.totalAmount shouldBe BigDecimal.ZERO
     }
 
     @Test
@@ -100,7 +93,7 @@ class InitialAmountCalculationTest {
 
         val result = calculateInitialAmount(request)
         
-        expectThat(result.totalAmount).isEqualTo(BigDecimal.ZERO)
+        result.totalAmount shouldBe BigDecimal.ZERO
     }
 
     @Test
@@ -122,10 +115,8 @@ class InitialAmountCalculationTest {
         
         val duration = simulateWithdrawalDuration(verificationRequest)
         
-        expect {
-            that(duration.isInfinite).isFalse()
-            that(duration.years >= 30.0).isTrue() // Should last at least 30 years
-        }
+        duration.isInfinite shouldBe false
+        duration.years shouldBeGreaterThanOrEqual 30.0 // Should last at least 30 years
     }
 
     @Test
@@ -147,10 +138,8 @@ class InitialAmountCalculationTest {
         
         val duration = simulateWithdrawalDuration(verificationRequest)
         
-        expect {
-            that(duration.isInfinite).isFalse()
-            that(duration.years >= 20.0).isTrue() // Should last at least 20 years
-        }
+        duration.isInfinite shouldBe false
+        duration.years shouldBeGreaterThanOrEqual 20.0 // Should last at least 20 years
     }
 
     @Test
@@ -172,9 +161,7 @@ class InitialAmountCalculationTest {
         
         val duration = simulateWithdrawalDuration(verificationRequest)
         
-        expect {
-            that(duration.isInfinite).isFalse()
-            that(duration.years >= 10.0).isTrue() // Should last at least 10 years
-        }
+        duration.isInfinite shouldBe false
+        duration.years shouldBeGreaterThanOrEqual 10.0 // Should last at least 10 years
     }
 } 

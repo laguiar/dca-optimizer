@@ -33,7 +33,7 @@ dependencies {
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.mockk)
-    testImplementation(libs.strikt.core)
+    testImplementation(libs.kotest.assertions.core.jvm)
 }
 
 java {

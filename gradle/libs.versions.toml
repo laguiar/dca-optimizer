@@ -2,8 +2,8 @@
 kotlin-version = "2.2.0"
 ktor-version = "3.2.3"
 logback-version = "1.5.18"
-mockk-version = "1.14.4"
-strikt-version = "0.35.1"
+mockk-version = "1.14.5"
+kotest-version = "5.9.1"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
@@ -16,7 +16,7 @@ kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", versi
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor-version" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation-jvm", version.ref = "ktor-version" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk-version" }
-strikt-core = { module = "io.strikt:strikt-core", version.ref = "strikt-version" }
+kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }

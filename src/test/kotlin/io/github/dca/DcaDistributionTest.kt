@@ -2,13 +2,11 @@ package io.github.dca
 
 import io.github.dca.strategy.distributeByPortfolio
 import io.github.dca.strategy.distributeByWeight
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import strikt.api.expect
-import strikt.api.expectThat
-import strikt.assertions.containsExactly
-import strikt.assertions.containsKey
-import strikt.assertions.hasSize
-import strikt.assertions.isEqualTo
 import java.math.BigDecimal
 import java.math.MathContext
 
@@ -39,9 +37,8 @@ internal class DcaDistributionTest {
         )
 
         distributeByTarget(request).let { distribution ->
-            expectThat(distribution)
-                .hasSize(1)
-                .containsKey("BTC")
+            distribution shouldHaveSize 1
+            distribution shouldContainKey "BTC"
         }
     }
 
@@ -61,13 +58,11 @@ internal class DcaDistributionTest {
         )
 
         distributeByWeight(request).let { distribution ->
-            expect {
-                that(distribution).hasSize(3)
-                that(distribution.keys).containsExactly("C", "D", "E")
-                that(distribution["C"]).isEqualTo(BigDecimal("333.33"))
-                that(distribution["D"]).isEqualTo(BigDecimal("500.00"))
-                that(distribution["E"]).isEqualTo(BigDecimal("166.67"))
-            }
+            distribution shouldHaveSize 3
+            distribution.keys.toList() shouldContainExactly listOf("C", "D", "E")
+            distribution["C"] shouldBe BigDecimal("333.33")
+            distribution["D"] shouldBe BigDecimal("500.00")
+            distribution["E"] shouldBe BigDecimal("166.67")
         }
     }
 
@@ -94,12 +89,10 @@ internal class DcaDistributionTest {
         )
 
         distributeByWeight(request).let { distribution ->
-            expect {
-                that(distribution).hasSize(2)
-                that(distribution.keys).containsExactly("C", "D")
-                that(distribution["C"]).isEqualTo(BigDecimal("500.00"))
-                that(distribution["D"]).isEqualTo(BigDecimal("500.00"))
-            }
+            distribution shouldHaveSize 2
+            distribution.keys.toList() shouldContainExactly listOf("C", "D")
+            distribution["C"] shouldBe BigDecimal("500.00")
+            distribution["D"] shouldBe BigDecimal("500.00")
         }
     }
 
@@ -112,13 +105,11 @@ internal class DcaDistributionTest {
         )
 
         distributeByTarget(request).let { distribution ->
-            expect {
-                that(distribution).hasSize(3)
-                that(distribution.keys).containsExactly("C", "D", "E")
-                that(distribution["C"]).isEqualTo(BigDecimal("416.67"))
-                that(distribution["D"]).isEqualTo(BigDecimal("416.67"))
-                that(distribution["E"]).isEqualTo(BigDecimal("166.67"))
-            }
+            distribution shouldHaveSize 3
+            distribution.keys.toList() shouldContainExactly listOf("C", "D", "E")
+            distribution["C"] shouldBe BigDecimal("416.67")
+            distribution["D"] shouldBe BigDecimal("416.67")
+            distribution["E"] shouldBe BigDecimal("166.67")
         }
     }
 
@@ -145,15 +136,13 @@ internal class DcaDistributionTest {
         )
 
         distributeByPortfolio(request).let { distribution ->
-            expect {
-                that(distribution).hasSize(5)
-                that(distribution.keys).containsExactly("A", "B","C", "D", "E")
-                that(distribution["A"]).isEqualTo(BigDecimal("150.00"))
-                that(distribution["B"]).isEqualTo(BigDecimal("60.00"))
-                that(distribution["C"]).isEqualTo(BigDecimal("330.00"))
-                that(distribution["D"]).isEqualTo(BigDecimal("330.00"))
-                that(distribution["E"]).isEqualTo(BigDecimal("130.00"))
-            }
+            distribution shouldHaveSize 5
+            distribution.keys.toList() shouldContainExactly listOf("A", "B","C", "D", "E")
+            distribution["A"] shouldBe BigDecimal("150.00")
+            distribution["B"] shouldBe BigDecimal("60.00")
+            distribution["C"] shouldBe BigDecimal("330.00")
+            distribution["D"] shouldBe BigDecimal("330.00")
+            distribution["E"] shouldBe BigDecimal("130.00")
         }
     }
 
@@ -176,15 +165,13 @@ internal class DcaDistributionTest {
         )
 
         distributeByRating(request).let { distribution ->
-            expect {
-                that(distribution).hasSize(5)
-                that(distribution.keys).containsExactly("A", "B","C", "D", "E")
-                that(distribution["A"]).isEqualTo(BigDecimal("277.78"))
-                that(distribution["B"]).isEqualTo(BigDecimal("277.78"))
-                that(distribution["C"]).isEqualTo(BigDecimal("222.22"))
-                that(distribution["D"]).isEqualTo(BigDecimal("166.67"))
-                that(distribution["E"]).isEqualTo(BigDecimal("55.56"))
-            }
+            distribution shouldHaveSize 5
+            distribution.keys.toList() shouldContainExactly listOf("A", "B","C", "D", "E")
+            distribution["A"] shouldBe BigDecimal("277.78")
+            distribution["B"] shouldBe BigDecimal("277.78")
+            distribution["C"] shouldBe BigDecimal("222.22")
+            distribution["D"] shouldBe BigDecimal("166.67")
+            distribution["E"] shouldBe BigDecimal("55.56")
         }
     }
 

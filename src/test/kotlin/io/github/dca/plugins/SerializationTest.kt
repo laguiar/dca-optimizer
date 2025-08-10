@@ -3,6 +3,7 @@ package io.github.dca.plugins
 import io.github.dca.WithdrawalCalculationRequest
 import io.github.dca.WithdrawalCalculationResponse
 import io.github.dca.module
+import io.kotest.matchers.shouldBe
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -10,9 +11,6 @@ import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
-import strikt.assertions.isTrue
 import java.math.BigDecimal
 
 /**
@@ -48,12 +46,12 @@ class SerializationTest {
             setBody(json.encodeToString(request))
         }
         
-        expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+        response.status shouldBe HttpStatusCode.OK
         
         val responseBody = json.decodeFromString<WithdrawalCalculationResponse>(response.bodyAsText())
         
         // Verify that the response contains Infinity
-        expectThat(responseBody.isInfinite).isTrue()
+        responseBody.isInfinite shouldBe true
     }
     
     @Test
@@ -86,7 +84,7 @@ class SerializationTest {
             setBody(jsonWithUnknownProperty)
         }
         
-        expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+        response.status shouldBe HttpStatusCode.OK
     }
     
     @Test
@@ -118,6 +116,6 @@ class SerializationTest {
             setBody(lenientJson)
         }
         
-        expectThat(response.status).isEqualTo(HttpStatusCode.OK)
+        response.status shouldBe HttpStatusCode.OK
     }
 } 

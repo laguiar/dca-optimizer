@@ -3,12 +3,12 @@ package io.github.dca.tax
 import io.github.dca.quotes.MarketClient
 import io.github.dca.tax.Direction.BUY
 import io.github.dca.tax.Direction.SELL
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.should
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
-import strikt.api.expectThat
-import strikt.assertions.containsExactly
-import strikt.assertions.isEmpty
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -21,7 +21,7 @@ class TaxAllowanceTest {
         every { marketClient.getQuotes(any()) } returns emptyMap()
 
         val result = findProfitableTransactionsForTaxAllowance(emptyList(), marketClient)
-        expectThat(result).isEmpty()
+        result should beEmpty()
     }
 
     @Test
@@ -38,7 +38,7 @@ class TaxAllowanceTest {
         )
 
         val result = findProfitableTransactionsForTaxAllowance(transactions, marketClient)
-        expectThat(result).isEmpty()
+        result should beEmpty()
     }
 
     @Test
@@ -59,7 +59,7 @@ class TaxAllowanceTest {
         val result = findProfitableTransactionsForTaxAllowance(transactions, marketClient)
         // AAPL -> 30 profit per share = 1500
         // GOOG -> 20 profit per share = 1000
-        expectThat(result).containsExactly(
+        result shouldContainExactly listOf(
             TickerShares("AAPL", 50.0),
             TickerShares("GOOG", 24.01)
         )
@@ -87,7 +87,7 @@ class TaxAllowanceTest {
         )
 
         val result = findProfitableTransactionsForTaxAllowance(transactions, marketClient)
-        expectThat(result).containsExactly(
+        result shouldContainExactly listOf(
             TickerShares("GGG", 50.0), // 500
             TickerShares("AAA", 80.0), // 800
             TickerShares("BBB", 50.0), // 500
@@ -128,7 +128,7 @@ class TaxAllowanceTest {
         )
 
         val result = findProfitableTransactionsForTaxAllowance(transactions, marketClient)
-        expectThat(result).containsExactly(
+        result shouldContainExactly listOf(
             TickerShares("AAA", 50.0), // 500
             TickerShares("BBB", 50.0), // 1500
             TickerShares("CCC", 9.42) // 480,42
@@ -177,8 +177,7 @@ class TaxAllowanceTest {
 
         // Adjust transactions and check the output
         val adjustedTransactions = consolidateTransactionHistory(transactions)
-        println(adjustedTransactions)
-        expectThat(adjustedTransactions).containsExactly(expectedTransactions)
+        adjustedTransactions shouldContainExactly expectedTransactions
     }
 
     @Test
@@ -223,7 +222,6 @@ class TaxAllowanceTest {
 
         // Adjust transactions and check the output
         val adjustedTransactions = consolidateTransactionHistory(transactions)
-        println(adjustedTransactions)
-        expectThat(adjustedTransactions).containsExactly(expectedTransactions)
+        adjustedTransactions shouldContainExactly expectedTransactions
     }
 }

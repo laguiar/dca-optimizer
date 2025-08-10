@@ -1,15 +1,12 @@
 package io.github.dca.withdrawal
 
 import io.github.dca.WithdrawalCalculationRequest
+import io.kotest.matchers.doubles.shouldBeGreaterThan
+import io.kotest.matchers.doubles.shouldBeLessThan
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import strikt.api.expect
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
 import java.math.BigDecimal
 import kotlin.math.abs
-import kotlin.test.assertFalse
 
 class WithdrawalCalculationTest {
 
@@ -23,12 +20,10 @@ class WithdrawalCalculationTest {
 
         val result = calculateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isFalse()
-            // Use a wider range for the test to accommodate different calculation results
-            that(result.years > 20.0).isTrue()
-            that(result.years < 30.0).isTrue()
-        }
+        result.isInfinite shouldBe false
+        // Use a wider range for the test to accommodate different calculation results
+        result.years shouldBeGreaterThan 20.0
+        result.years shouldBeLessThan 30.0
     }
 
     @Test
@@ -41,9 +36,7 @@ class WithdrawalCalculationTest {
 
         val result = calculateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isTrue()
-        }
+        result.isInfinite shouldBe true
     }
 
     @Test
@@ -57,10 +50,8 @@ class WithdrawalCalculationTest {
         val result = calculateWithdrawalDuration(request)
         
         // With zero return, it's just dividing the total by monthly withdraw
-        expect {
-            that(result.isInfinite).isFalse()
-            that(result.years).isEqualTo(10.0)
-        }
+        result.isInfinite shouldBe false
+        result.years shouldBe 10.0
     }
 
     @Test
@@ -73,9 +64,7 @@ class WithdrawalCalculationTest {
 
         val result = calculateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isTrue()
-        }
+        result.isInfinite shouldBe true
     }
 
     @Test
@@ -88,11 +77,9 @@ class WithdrawalCalculationTest {
 
         val result = calculateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isFalse()
-            // Should be less than a year
-            that(result.years < 1.0).isTrue()
-        }
+        result.isInfinite shouldBe false
+        // Should be less than a year
+        result.years shouldBeLessThan 1.0
     }
 
     @Test
@@ -104,12 +91,8 @@ class WithdrawalCalculationTest {
         )
 
         val result = calculateWithdrawalDuration(request)
-        
-        expect {
-            that(result.isInfinite).isFalse()
-            // Should be less than with zero return
-            that(result.years < 16.67).isTrue()
-        }
+        result.isInfinite shouldBe false
+        result.years shouldBeLessThan 16.67 // Should be less than with zero return
     }
 
     @Test
@@ -121,18 +104,8 @@ class WithdrawalCalculationTest {
         )
 
         val result = calculateWithdrawalDuration(request)
-        
-        // With high returns, the money might last indefinitely
-        if (result.isInfinite) {
-            expect {
-                that(result.isInfinite).isTrue()
-            }
-        } else {
-            expect {
-                that(result.isInfinite).isFalse()
-                that(result.years > 25.0).isTrue()
-            }
-        }
+        result.years shouldBeGreaterThan 25.0 // Should be a long duration
+        result.isInfinite shouldBe true
     }
 
     @Test
@@ -145,13 +118,10 @@ class WithdrawalCalculationTest {
         )
         
         val result7Percent = calculateWithdrawalDuration(request7Percent)
-        
-        expect {
-            that(result7Percent.isInfinite).isFalse()
-            // Should be around 29-30 years
-            that(result7Percent.years > 25.0).isTrue()
-            that(result7Percent.years < 35.0).isTrue()
-        }
+        result7Percent.isInfinite shouldBe false
+        // Should be around 29-30 years
+        result7Percent.years shouldBeGreaterThan 25.0
+        result7Percent.years shouldBeLessThan 35.0
         
         // Test with 8% return - should be finite with our 1% safety margin
         val request8Percent = WithdrawalCalculationRequest(
@@ -161,13 +131,10 @@ class WithdrawalCalculationTest {
         )
         
         val result8Percent = calculateWithdrawalDuration(request8Percent)
-        
-        expect {
-            that(result8Percent.isInfinite).isFalse()
-            // Should be longer than with 7%
-            that(result8Percent.years > result7Percent.years).isTrue()
-        }
-        
+        result8Percent.isInfinite shouldBe false
+        // Should be longer than with 7%
+        result8Percent.years shouldBeGreaterThan result7Percent.years
+
         // Test with 9% return - should be infinite with our 1% safety margin
         val request9Percent = WithdrawalCalculationRequest(
             totalAmount = BigDecimal("300000"),
@@ -176,10 +143,7 @@ class WithdrawalCalculationTest {
         )
         
         val result9Percent = calculateWithdrawalDuration(request9Percent)
-        
-        expect {
-            that(result9Percent.isInfinite).isTrue()
-        }
+        result9Percent.isInfinite shouldBe true
     }
 
     @Test
@@ -191,13 +155,10 @@ class WithdrawalCalculationTest {
         )
 
         val result = simulateWithdrawalDuration(request)
-        
-        expect {
-            that(result.isInfinite).isFalse()
-            // The simulation might give slightly different results than the formula
-            that(result.years > 20.0).isTrue()
-            that(result.years < 30.0).isTrue()
-        }
+        result.isInfinite shouldBe false
+        // The simulation might give slightly different results than the formula
+        result.years shouldBeGreaterThan 20.0
+        result.years shouldBeLessThan 30.0
     }
 
     @Test
@@ -210,9 +171,7 @@ class WithdrawalCalculationTest {
 
         val result = simulateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isTrue()
-        }
+        result.isInfinite shouldBe true
     }
 
     @Test
@@ -225,10 +184,8 @@ class WithdrawalCalculationTest {
 
         val result = simulateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isFalse()
-            that(result.years).isEqualTo(10.0)
-        }
+        result.isInfinite shouldBe false
+        result.years shouldBe 10.0
     }
 
     @Test
@@ -241,9 +198,7 @@ class WithdrawalCalculationTest {
 
         val result = simulateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isTrue()
-        }
+        result.isInfinite shouldBe true
     }
 
     @Test
@@ -256,11 +211,9 @@ class WithdrawalCalculationTest {
 
         val result = simulateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isFalse()
-            // Should be less than a year
-            that(result.years < 1.0).isTrue()
-        }
+        result.isInfinite shouldBe false
+        // Should be less than a year
+        result.years shouldBeLessThan 1.0
     }
 
     @Test
@@ -273,11 +226,9 @@ class WithdrawalCalculationTest {
 
         val result = simulateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isFalse()
-            // Should be less than with zero return
-            that(result.years < 16.67).isTrue()
-        }
+        result.isInfinite shouldBe false
+        // Should be less than with zero return
+        result.years shouldBeLessThan 16.67
     }
 
     @Test
@@ -290,8 +241,8 @@ class WithdrawalCalculationTest {
 
         val result = simulateWithdrawalDuration(request)
 
-        assertFalse { result.isInfinite }
-        expectThat(result.years).isEqualTo(10.167)
+        result.isInfinite shouldBe false
+        result.years shouldBe 10.167
     }
 
     @Test
@@ -318,15 +269,13 @@ class WithdrawalCalculationTest {
             val formulaResult = calculateWithdrawalDuration(request)
             val simulationResult = simulateWithdrawalDuration(request)
             
-            expect {
-                // Both should agree on whether it's infinite
-                that(formulaResult.isInfinite).isEqualTo(simulationResult.isInfinite)
-                
-                // If finite, they should be reasonably close (within 5% of each other)
-                if (!formulaResult.isInfinite && !simulationResult.isInfinite) {
-                    val percentDifference = abs(formulaResult.years - simulationResult.years) / formulaResult.years * 100
-                    that(percentDifference < 5.0).isTrue()
-                }
+            // Both should agree on whether it's infinite
+            formulaResult.isInfinite shouldBe simulationResult.isInfinite
+            
+            // If finite, they should be reasonably close (within 5% of each other)
+            if (!formulaResult.isInfinite && !simulationResult.isInfinite) {
+                val percentDifference = abs(formulaResult.years - simulationResult.years) / formulaResult.years * 100
+                percentDifference shouldBeLessThan 5.0
             }
         }
     }
@@ -341,17 +290,13 @@ class WithdrawalCalculationTest {
 
         val result = calculateWithdrawalDuration(request)
         
-        expect {
-            that(result.isInfinite).isFalse()
-            that(result.years).isEqualTo(0.0)
-        }
+        result.isInfinite shouldBe false
+        result.years shouldBe 0.0
         
         val simulationResult = simulateWithdrawalDuration(request)
         
-        expect {
-            that(simulationResult.isInfinite).isFalse()
-            that(simulationResult.years).isEqualTo(0.0)
-        }
+        simulationResult.isInfinite shouldBe false
+        simulationResult.years shouldBe 0.0
     }
 
     @Test
@@ -363,15 +308,9 @@ class WithdrawalCalculationTest {
         )
 
         val result = calculateWithdrawalDuration(request)
-        
-        expect {
-            that(result.isInfinite).isTrue()
-        }
+        result.isInfinite shouldBe true
         
         val simulationResult = simulateWithdrawalDuration(request)
-        
-        expect {
-            that(simulationResult.isInfinite).isTrue()
-        }
+        simulationResult.isInfinite shouldBe true
     }
 } 
