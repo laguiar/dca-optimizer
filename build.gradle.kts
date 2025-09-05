@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.plugin.serialization)
+    alias(libs.plugins.kotest)
 }
 
 group = "io.github"
@@ -34,6 +35,7 @@ dependencies {
     testImplementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.mockk)
     testImplementation(libs.kotest.assertions.core.jvm)
+    testImplementation(libs.kotest.framework.engine)
 }
 
 java {
