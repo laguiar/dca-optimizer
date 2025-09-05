@@ -102,7 +102,6 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 }
 ```
 
-
 ```json
 {
     "amount": "1000.00",
@@ -340,7 +339,9 @@ Calculates the initial amount needed to sustain withdrawals for a specific durat
 
 1. Clone the repository
 2. Run the application:
+
    ```bash
    ./gradlew run
    ```
+
 3. The application APIs will be available at `http://localhost:8080`
