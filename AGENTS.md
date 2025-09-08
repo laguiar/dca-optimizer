@@ -6,6 +6,7 @@
 - Prefer functional programming approach over OOP.
 - Use pure functions and high-order functions.
 - Enforce immutability of data objects.
+- Use value classes for simple domain values used across functions.
 - Take in consideration the code's performance and security.
 - Every code changed and added should be covered by unit tests.
 - Prefer concise and meaningful tests over many overlapping weak tests.
