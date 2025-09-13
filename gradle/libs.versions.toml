@@ -1,9 +1,9 @@
 [versions]
-kotlin-version = "2.2.10"
-ktor-version = "3.2.3"
+kotlin-version = "2.2.20"
+ktor-version = "3.3.0"
 logback-version = "1.5.18"
 mockk-version = "1.14.5"
-kotest-version = "6.0.2"
+kotest-version = "6.0.3"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
