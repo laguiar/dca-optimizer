@@ -4,6 +4,8 @@ ktor-version = "3.3.0"
 logback-version = "1.5.18"
 mockk-version = "1.14.5"
 kotest-version = "6.0.3"
+commons-math3-version = "3.6.1"
+commons-numbers-version = "1.2"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor-version" }
@@ -18,6 +20,8 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 mockk = { module = "io.mockk:mockk", version.ref = "mockk-version" }
 kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest-version" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest-version" }
+commons-math = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3-version" }
+commons-numbers-core = { module = "org.apache.commons:commons-numbers-core", version.ref = "commons-numbers-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }

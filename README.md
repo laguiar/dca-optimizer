@@ -52,6 +52,7 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 - **TARGET**: The asset's target is used to determine the DCA distribution, over-weighted assets are discarded. _(Assets with same target will get the same result)_
 - **PORTFOLIO**: All assets will be invested, but over-weighted assets will have its target reduced and the difference is distributed among all under-target assets.
 - **RATING**: All rated assets will be invested, **ONLY** the rating values will be used to calculate the distribution. _(Think on a 5 stars rating system)_
+- **CONVEX_OPTIMIZATION**: Uses mathematical optimization (linear programming) to find the optimal distribution that minimizes deviation from target weights while respecting constraints. Provides mathematically optimal solutions compared to heuristic approaches.
 
 ### Payload examples
 
@@ -128,6 +129,39 @@ This doesn't guarantee any significant portfolio performance on the long term, b
         {
             "ticker": "E",
             "rating": 4
+        }
+    ]
+}
+```
+
+```json
+{
+    "amount": "1000.00",
+    "strategy": {
+        "type": "CONVEX_OPTIMIZATION",
+        "thresholds": {
+            "fromAth": 10.0,
+            "overTarget": 0.0
+        }
+    },
+    "assets": [
+        {
+            "ticker": "AAPL",
+            "weight": 15.0,
+            "target": 20.0,
+            "fromAth": 15.0
+        },
+        {
+            "ticker": "GOOGL",
+            "weight": 10.0,
+            "target": 25.0,
+            "fromAth": 12.0
+        },
+        {
+            "ticker": "MSFT",
+            "weight": 25.0,
+            "target": 20.0,
+            "fromAth": 8.0
         }
     ]
 }

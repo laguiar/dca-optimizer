@@ -1,16 +1,13 @@
 package io.github.dca.strategy
 
-import io.github.dca.Asset
-import io.github.dca.DcaRequest
-import io.github.dca.Distribution
-import io.github.dca.ZERO
-import io.github.dca.calculateDistribution
-import io.github.dca.toDecimalRepresentation
+import io.github.dca.*
 
 fun distributeByPortfolio(request: DcaRequest): Distribution =
-    calculateTargetByPortfolio(request.assets).entries.associate { (ticker, adjustedTarget) ->
-        ticker to request.amount.calculateDistribution(adjustedTarget)
-    }
+    calculateTargetByPortfolio(request.assets)
+        .entries
+        .associate { (ticker, adjustedTarget) ->
+            ticker to request.amount.calculateDistribution(adjustedTarget)
+        }
 
 fun calculateTargetByPortfolio(assets: List<Asset>): Map<String, Double> {
     // sum the total percentage of over-weighted assets and divide it by the number of under-weighted assets

@@ -162,7 +162,7 @@ data class Thresholds(
 )
 
 enum class StrategyType {
-    TARGET, WEIGHT, PORTFOLIO, RATING, DIVIDEND, REBALANCE
+    TARGET, WEIGHT, PORTFOLIO, RATING, DIVIDEND, REBALANCE, CONVEX_OPTIMIZATION
 }
 
 private object BigDecimalNumericSerializer : KSerializer<BigDecimal> {
