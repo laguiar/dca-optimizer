@@ -28,7 +28,6 @@ dependencies {
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.logback.classic)
-    implementation(libs.commons.math)
     implementation(libs.commons.numbers.core)
 
     testImplementation(libs.kotlin.test.junit5)

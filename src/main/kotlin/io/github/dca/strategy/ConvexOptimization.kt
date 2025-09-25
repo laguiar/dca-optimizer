@@ -1,9 +1,7 @@
 package io.github.dca.strategy
 
 import io.github.dca.*
-import org.apache.commons.math3.optim.MaxIter
-import org.apache.commons.math3.optim.linear.*
-import org.apache.commons.math3.optim.nonlinear.scalar.GoalType
+import io.github.dca.math.linear.*
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -75,12 +73,11 @@ private fun solveOptimizationProblem(request: DcaRequest, eligibleAssets: List<A
         }
 
         // Solve the linear programming problem
-        val solution = SimplexSolver().optimize(
-            MaxIter(1000),
+        val solution = SimplexSolver(maxIterations = 1000).optimize(
             objective,
             LinearConstraintSet(constraints),
             GoalType.MINIMIZE,
-            NonNegativeConstraint(true)
+            nonNegativeConstraint = true
         )
 
         // Convert solution to distribution map
