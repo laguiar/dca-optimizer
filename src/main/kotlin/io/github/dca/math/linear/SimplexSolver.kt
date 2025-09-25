@@ -25,7 +25,6 @@ class SimplexSolver(
      * @param objective the objective function to minimize or maximize
      * @param constraints the set of linear constraints
      * @param goalType whether to minimize or maximize the objective function
-     * @param nonNegativeConstraint whether to enforce non-negativity constraints on all variables
      * @return the optimal solution as a PointValuePair
      * @throws NoFeasibleSolutionException if no feasible solution exists
      * @throws UnboundedSolutionException if the solution is unbounded
@@ -34,8 +33,7 @@ class SimplexSolver(
     fun optimize(
         objective: LinearObjectiveFunction,
         constraints: LinearConstraintSet,
-        goalType: GoalType,
-        nonNegativeConstraint: Boolean = true
+        goalType: GoalType
     ): PointValuePair {
         validateProblem(objective, constraints)
 

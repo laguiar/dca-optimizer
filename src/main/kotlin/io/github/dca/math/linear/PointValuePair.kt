@@ -11,11 +11,6 @@ data class PointValuePair(
     val point: DoubleArray,
     val value: Double
 ) {
-    /**
-     * Gets the point coordinates as a copy to prevent external modification.
-     */
-    fun getPointCopy(): DoubleArray = point.copyOf()
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is PointValuePair) return false

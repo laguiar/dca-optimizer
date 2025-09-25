@@ -1,5 +1,7 @@
 package io.github.dca.math.linear
 
+import io.github.dca.math.linear.Relationship.GEQ
+import io.github.dca.math.linear.Relationship.LEQ
 import kotlin.math.abs
 
 /**
@@ -14,8 +16,8 @@ internal class SimplexTableau(
 ) {
     private val numVars: Int = objective.dimension
     private val numConstraints: Int = constraints.size
-    private val numSlackVars: Int = constraints.count { it.relationship == Relationship.LEQ || it.relationship == Relationship.GEQ }
-    private val numArtificialVars: Int = constraints.count { it.relationship != Relationship.LEQ }
+    private val numSlackVars: Int = constraints.count { it.relationship == LEQ || it.relationship == GEQ }
+    private val numArtificialVars: Int = constraints.count { it.relationship != LEQ }
 
     private val tableauWidth: Int = numVars + numSlackVars + numArtificialVars + 1 // +1 for RHS
     private val tableauHeight: Int = numConstraints + 1 // +1 for objective row
@@ -45,7 +47,6 @@ internal class SimplexTableau(
         // Set up constraint rows
         var slackVarIndex = numVars
         var artificialVarIndex = numVars + numSlackVars
-        var basicVarIndex = 0
 
         constraints.forEachIndexed { constraintIndex, constraint ->
             val row = tableau[constraintIndex]
@@ -59,13 +60,13 @@ internal class SimplexTableau(
             row[tableauWidth - 1] = constraint.value
 
             when (constraint.relationship) {
-                Relationship.LEQ -> {
+                LEQ -> {
                     // Add slack variable
                     row[slackVarIndex] = 1.0
                     basicVariables[constraintIndex] = slackVarIndex
                     slackVarIndex++
                 }
-                Relationship.GEQ -> {
+                GEQ -> {
                     // Subtract slack variable and add artificial variable
                     row[slackVarIndex] = -1.0
                     row[artificialVarIndex] = 1.0
@@ -148,25 +149,14 @@ internal class SimplexTableau(
 
         return when (pivotSelectionRule) {
             PivotSelectionRule.DANTZIG -> {
-                var pivotCol = -1
-                var mostNegative = 0.0
-                for (i in 0 until tableauWidth - 1) {
-                    if (objectiveRow[i] < mostNegative) {
-                        mostNegative = objectiveRow[i]
-                        pivotCol = i
-                    }
-                }
-                pivotCol
+                val lastIndex = tableauWidth - 1 // exclude RHS
+                val minIndex = (0 until lastIndex)
+                    .minByOrNull { objectiveRow[it] } ?: -1
+                if (minIndex >= 0 && objectiveRow[minIndex] < 0.0) minIndex else -1
             }
             PivotSelectionRule.BLAND -> {
-                var pivotCol = -1
-                for (i in 0 until tableauWidth - 1) {
-                    if (objectiveRow[i] < -epsilon) {
-                        pivotCol = i
-                        break
-                    }
-                }
-                pivotCol
+                val lastIndex = tableauWidth - 1
+                (0 until lastIndex).firstOrNull { objectiveRow[it] < -epsilon } ?: -1
             }
         }
     }
@@ -177,23 +167,20 @@ internal class SimplexTableau(
     fun getPivotRow(pivotColumn: Int): Int {
         if (pivotColumn < 0) return -1
 
-        var pivotRow = -1
-        var minRatio = Double.POSITIVE_INFINITY
-
-        for (i in 0 until numConstraints) {
-            val pivotElement = tableau[i][pivotColumn]
-            val rhs = tableau[i][tableauWidth - 1]
-
-            if (pivotElement > epsilon) {
-                val ratio = rhs / pivotElement
-                if (ratio >= 0 && ratio < minRatio) {
-                    minRatio = ratio
-                    pivotRow = i
-                }
+        val lastCol = tableauWidth - 1
+        return (0 until numConstraints)
+            .asSequence()
+            .mapNotNull { i ->
+                val pivot = tableau[i][pivotColumn]
+                if (pivot > epsilon) {
+                    val rhs = tableau[i][lastCol]
+                    val ratio = rhs / pivot
+                    if (ratio >= 0.0) i to ratio else null
+                } else null
             }
-        }
-
-        return pivotRow
+            .minByOrNull { it.second }
+            ?.first
+            ?: -1
     }
 
     /**

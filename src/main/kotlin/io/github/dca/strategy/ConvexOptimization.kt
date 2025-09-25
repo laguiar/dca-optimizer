@@ -15,22 +15,21 @@ import java.math.RoundingMode
  *            allocation_i ≥ 0 (no short selling)
  *            ATH constraints (assets below ATH threshold get zero allocation)
  */
-fun distributeByConvexOptimization(request: DcaRequest): Distribution {
-    val eligibleAssets = filterAssetsByConvexConstraints(request.assets, request.strategy.thresholds)
-
-    if (eligibleAssets.isEmpty()) {
-        return emptyMap()
-    }
-
-    return solveOptimizationProblem(request, eligibleAssets)
-}
+fun distributeByConvexOptimization(request: DcaRequest): Distribution =
+    filterAssetsByConvexConstraints(request.assets, request.strategy.thresholds)
+        .let { eligibleAssets ->
+            when {
+                eligibleAssets.isEmpty() -> emptyMap()
+                else -> solveOptimizationProblem(request, eligibleAssets)
+            }
+        }
 
 private fun filterAssetsByConvexConstraints(assets: List<Asset>, thresholds: Thresholds): List<Asset> =
     assets.filter { asset ->
         // Include assets that are below target weight
         asset.isWeightBellowTarget &&
-        // Include assets that meet ATH threshold (if specified)
-        (asset.fromAth == ZERO || asset.fromAth >= thresholds.fromAth)
+                // Include assets that meet ATH threshold (if specified)
+                (asset.fromAth == ZERO || asset.fromAth >= thresholds.fromAth)
     }
 
 private fun solveOptimizationProblem(request: DcaRequest, eligibleAssets: List<Asset>): Distribution {
@@ -76,8 +75,7 @@ private fun solveOptimizationProblem(request: DcaRequest, eligibleAssets: List<A
         val solution = SimplexSolver(maxIterations = 1000).optimize(
             objective,
             LinearConstraintSet(constraints),
-            GoalType.MINIMIZE,
-            nonNegativeConstraint = true
+            GoalType.MINIMIZE
         )
 
         // Convert solution to distribution map
