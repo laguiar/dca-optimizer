@@ -1,14 +1,6 @@
 package io.github.dca.strategy
 
-import io.github.dca.Asset
-import io.github.dca.DcaRequest
-import io.github.dca.Distribution
-import io.github.dca.Thresholds
-import io.github.dca.ZERO
-import io.github.dca.calculateAdjustedAmountToInvest
-import io.github.dca.calculateAdjustedWeight
-import io.github.dca.calculateDistribution
-import io.github.dca.extractCalculationBasis
+import io.github.dca.*
 import java.math.BigDecimal
 
 fun distributeByWeight(request: DcaRequest): Distribution =
@@ -33,7 +25,7 @@ private fun rebalancePortfolioByWeight(
         val amountToInvest = underWeightAmounts[asset.ticker] ?: BigDecimal.ZERO
         Asset(
             ticker = asset.ticker,
-            weight = calculateAdjustedWeight(request.portfolioValueOrZero(), amountToInvest, asset.weight),
+            weight = calculateAdjustedWeight(request.portfolioValue, amountToInvest, asset.weight),
             target = asset.target
         )
     }.let { updatedAssets ->

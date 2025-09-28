@@ -13,8 +13,8 @@ import java.math.BigDecimal
 typealias BigDecimalNumber = @Serializable(with = BigDecimalNumericSerializer::class) BigDecimal
 typealias Distribution = Map<String, BigDecimalNumber>
 
-private const val ATH_THRESHOLD = 5.0
-private const val OVER_TARGET_THRESHOLD = 0.0
+private const val ATH_THRESHOLD = 8.0
+private const val OVER_TARGET_THRESHOLD = 0.01
 
 @Serializable
 data class WithdrawalCalculationRequest(
@@ -106,18 +106,16 @@ data class InitialAmountCalculationResponse(
 @Serializable
 data class DcaRequest(
     val amount: BigDecimalNumber,
-    val portfolioValue: BigDecimalNumber? = null,
+    val portfolioValue: BigDecimalNumber = BigDecimal.ZERO,
     val strategy: DcaStrategy = DcaStrategy.default(),
     val assets: List<Asset>
 ) {
     init {
         require(assets.isNotEmpty()) { "Assets list cannot be empty" }
         require(
-            if (strategy.type == StrategyType.WEIGHT) portfolioValue != null else true
+            if (strategy.type == StrategyType.WEIGHT) portfolioValue > BigDecimal.ZERO else true
         ) { "WEIGHT strategy requires Portfolio value" }
     }
-
-    fun portfolioValueOrZero(): BigDecimalNumber = portfolioValue ?: BigDecimal.ZERO
 }
 
 @Serializable

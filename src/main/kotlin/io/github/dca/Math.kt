@@ -13,7 +13,7 @@ fun extractCalculationBasis(
     filteredAssets: List<Asset>
 ): Pair<BigDecimal, Map<String, BigDecimal>> {
     val underWeightAmounts = filteredAssets.associate {
-        it.ticker to request.portfolioValueOrZero()
+        it.ticker to request.portfolioValue
             .multiply((it.target - it.weight)
                 .toDecimalRepresentation()
                 .toBigDecimal())

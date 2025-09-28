@@ -35,6 +35,20 @@ class RoutingTest {
     inner class OptimizeEndpointTests {
         
         @Test
+        @DisplayName("Should return 400 for invalid optimize payload (missing required fields)")
+        fun testOptimizeWithInvalidPayloadMissingFields() = testApplication {
+            application { module() }
+
+            val response = client.post("/api/optimize") {
+                contentType(ContentType.Application.Json)
+                setBody("""{ }""")
+            }
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            response.bodyAsText().isNotBlank() shouldBe true
+        }
+        
+        @Test
         @DisplayName("Should handle optimize request with TARGET strategy")
         fun testOptimizeWithTargetStrategy() = testApplication {
             application {
@@ -176,15 +190,29 @@ class RoutingTest {
             responseBody.distribution shouldContainKey("BTC")
             responseBody.distribution shouldContainKey("ETH")
         }
-        
-        // Note: The following tests for unimplemented strategies would ideally test for exceptions,
-        // but due to JVM target compatibility issues, we're omitting them.
-        // In a real-world scenario, we would need to configure the build properly to handle these tests.
     }
     
     @Nested
     @DisplayName("Simulate Withdrawal Endpoint Tests")
     inner class SimulateWithdrawalEndpointTests {
+        
+        @Test
+        @DisplayName("Should return 400 for invalid simulate withdrawal payload (missing required fields)")
+        fun testSimulateWithdrawalWithInvalidPayloadMissingFields() = testApplication {
+            application { module() }
+
+            val response = client.post("/api/simulate-withdrawal") {
+                contentType(ContentType.Application.Json)
+                // Missing totalAmount
+                setBody("""{
+                  "monthlyWithdraw": "500",
+                  "expectedYearlyReturn": 7.0
+                }""")
+            }
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            response.bodyAsText().isNotBlank() shouldBe true
+        }
         
         @Test
         @DisplayName("Should handle simulate withdrawal request")
@@ -269,6 +297,24 @@ class RoutingTest {
     inner class CalculateWithdrawalEndpointTests {
         
         @Test
+        @DisplayName("Should return 400 for invalid calculate withdrawal payload (missing required fields)")
+        fun testCalculateWithdrawalWithInvalidPayloadMissingFields() = testApplication {
+            application { module() }
+
+            val response = client.post("/api/calculate-withdrawal") {
+                contentType(ContentType.Application.Json)
+                // Missing monthlyWithdraw
+                setBody("""{
+                  "totalAmount": "100000",
+                  "expectedYearlyReturn": 7.0
+                }""")
+            }
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            response.bodyAsText().isNotBlank() shouldBe true
+        }
+        
+        @Test
         @DisplayName("Should handle calculate withdrawal request")
         fun testCalculateWithdrawalEndpoint() = testApplication {
             application {
@@ -325,6 +371,24 @@ class RoutingTest {
     inner class CalculateTargetAmountEndpointTests {
         
         @Test
+        @DisplayName("Should return 400 for invalid calculate target amount payload (missing required fields)")
+        fun testCalculateTargetAmountWithInvalidPayloadMissingFields() = testApplication {
+            application { module() }
+
+            val response = client.post("/api/calculate-target-amount") {
+                contentType(ContentType.Application.Json)
+                // Missing monthlyWithdraw
+                setBody("""{
+                  "shouldLastForYears": 30.0,
+                  "expectedYearlyReturn": 7.0
+                }""")
+            }
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            response.bodyAsText().isNotBlank() shouldBe true
+        }
+        
+        @Test
         @DisplayName("Should handle calculate target amount request")
         fun testCalculateTargetAmountEndpoint() = testApplication {
             application {
@@ -379,6 +443,24 @@ class RoutingTest {
     @Nested
     @DisplayName("Calculate Advanced Withdrawal Endpoint Tests")
     inner class CalculateAdvancedWithdrawalEndpointTests {
+        
+        @Test
+        @DisplayName("Should return 400 for invalid advanced withdrawal payload (missing required fields)")
+        fun testCalculateAdvancedWithdrawalWithInvalidPayloadMissingFields() = testApplication {
+            application { module() }
+
+            val response = client.post("/api/calculate-advanced-withdrawal") {
+                contentType(ContentType.Application.Json)
+                // Missing monthlyWithdraw
+                setBody("""{
+                  "totalAmount": "100000",
+                  "expectedYearlyReturn": 7.0
+                }""")
+            }
+
+            response.status shouldBe HttpStatusCode.BadRequest
+            response.bodyAsText().isNotBlank() shouldBe true
+        }
         
         @Test
         @DisplayName("Should handle advanced withdrawal calculation request")

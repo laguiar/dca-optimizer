@@ -16,26 +16,21 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
     routing {
-        post("/api/optimize") {
-            call.receive<DcaRequest>()
-                .let { call.respond(HttpStatusCode.OK, processOptimization(it)) }
-        }
-        post("/api/simulate-withdrawal") {
-            call.receive<WithdrawalCalculationRequest>()
-                .let { call.respond(HttpStatusCode.OK, simulateWithdrawalDuration(it)) }
-        }
-        post("/api/calculate-withdrawal") {
-            call.receive<WithdrawalCalculationRequest>()
-                .let { call.respond(HttpStatusCode.OK, calculateWithdrawalDuration(it)) }
-        }
-        post("/api/calculate-advanced-withdrawal") {
-            call.receive<AdvancedWithdrawalCalculationRequest>()
-                .let { call.respond(HttpStatusCode.OK, calculateAdvancedWithdrawalDuration(it)) }
-        }
-        post("/api/calculate-target-amount") {
-            call.receive<InitialAmountCalculationRequest>()
-                .let { call.respond(HttpStatusCode.OK, calculateInitialAmount(it)) }
-        }
+        postApi<DcaRequest>("/api/optimize", ::processOptimization)
+        postApi<WithdrawalCalculationRequest>("/api/simulate-withdrawal", ::simulateWithdrawalDuration)
+        postApi<WithdrawalCalculationRequest>("/api/calculate-withdrawal", ::calculateWithdrawalDuration)
+        postApi<AdvancedWithdrawalCalculationRequest>("/api/calculate-advanced-withdrawal", ::calculateAdvancedWithdrawalDuration)
+        postApi<InitialAmountCalculationRequest>("/api/calculate-target-amount", ::calculateInitialAmount)
+    }
+}
+
+private inline fun <reified Req : Any> Route.postApi(
+    path: String,
+    crossinline handler: suspend (Req) -> Any
+) {
+    post(path) {
+        val request = call.receive<Req>()
+        call.respond(HttpStatusCode.OK, handler(request))
     }
 }
 
