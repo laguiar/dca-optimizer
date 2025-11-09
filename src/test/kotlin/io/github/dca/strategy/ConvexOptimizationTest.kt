@@ -157,4 +157,35 @@ class ConvexOptimizationTest {
         result.shouldContainKey("LOW_ATH")
         result["LOW_ATH"] shouldBe BigDecimal("1000.00")
     }
+
+    @Test
+    fun `should prioritize assets with larger deviations from target`() {
+        val request = DcaRequest(
+            amount = BigDecimal("1000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.CONVEX_OPTIMIZATION,
+                thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
+            ),
+            assets = listOf(
+                Asset(ticker = "HIGH_DEV", weight = 5.0, target = 30.0, fromAth = 15.0),  // 25% below target
+                Asset(ticker = "LOW_DEV", weight = 18.0, target = 20.0, fromAth = 12.0)   // 2% below target
+            )
+        )
+
+        val result = distributeByConvexOptimization(request)
+
+        result.shouldNotBeEmpty()
+        result.shouldContainKey("HIGH_DEV")
+        result.shouldContainKey("LOW_DEV")
+
+        // Total allocation should equal investment amount
+        val totalDistributed = result.values.sumOf { it }
+        totalDistributed shouldBe BigDecimal("1000.00")
+
+        // Asset with larger deviation from target should receive more allocation
+        val highDevAllocation = result["HIGH_DEV"]!!.toDouble()
+        val lowDevAllocation = result["LOW_DEV"]!!.toDouble()
+
+        highDevAllocation.shouldBeGreaterThan(lowDevAllocation)
+    }
 }

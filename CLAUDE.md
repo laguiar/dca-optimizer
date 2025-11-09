@@ -54,6 +54,7 @@ This is a Kotlin/Ktor application that provides DCA (Dollar-Cost Averaging) opti
 ## Development Guidelines
 
 From AGENTS.md:
+- When interacting, generating comments, documentation, or plans, be extremely concise and to the point.
 - Use Kotlin official code style
 - Prefer functional programming over OOP
 - Use pure functions and high-order functions
@@ -64,5 +65,4 @@ From AGENTS.md:
 - Every code change should be covered by unit tests
 - Keep implementations within their own domain package
 - Use junit 5 as test framework, Kotest for assertions and mockk for mocking
-- Avoid verbose comments, prefer multiline comments at class/function level
 - Update README.md for any public interface changes
