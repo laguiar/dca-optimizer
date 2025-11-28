@@ -13,8 +13,9 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import kotlin.math.abs
+import io.kotest.matchers.ints.shouldBeGreaterThan as intShouldBeGreaterThan
 
-class ConvexOptimizationTest {
+class LinearProgrammingTest {
 
     private val epsilon = 0.01 // Tolerance for comparisons
 
@@ -25,7 +26,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 10.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -34,7 +35,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldBeEmpty()
     }
@@ -44,7 +45,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 10.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -54,7 +55,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.size shouldBeExactly 2
@@ -77,7 +78,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("750.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 10.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -85,7 +86,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.size shouldBeExactly 1
@@ -100,7 +101,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("500.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 10.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -109,7 +110,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.size shouldBeExactly 2
@@ -129,7 +130,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 15.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -138,7 +139,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.size shouldBeExactly 1
@@ -151,7 +152,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 15.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -160,7 +161,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.size shouldBeExactly 1
         result.shouldContainKey("EXACT")
@@ -174,7 +175,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -183,7 +184,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.shouldContainKey("SMALL")
@@ -202,7 +203,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -211,7 +212,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.shouldContainKey("HIGH_DEV")
@@ -230,7 +231,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -239,7 +240,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.size shouldBeExactly 2
@@ -258,7 +259,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -267,7 +268,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         val totalDistributed = result.values.sumOf { it }
@@ -279,7 +280,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -288,7 +289,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         val totalDistributed = result.values.sumOf { it }
@@ -300,7 +301,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -310,7 +311,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.size shouldBeExactly 3
@@ -326,7 +327,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -335,7 +336,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.size shouldBeExactly 2
@@ -351,7 +352,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("100.33"), // Amount that doesn't divide evenly
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -361,7 +362,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         val totalDistributed = result.values.sumOf { it }
@@ -377,7 +378,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("10000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -390,7 +391,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.size shouldBeExactly 4
@@ -419,7 +420,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 10.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -429,9 +430,9 @@ class ConvexOptimizationTest {
         )
 
         // Run the optimization multiple times - should produce identical results
-        val result1 = distributeByConvexOptimization(request)
-        val result2 = distributeByConvexOptimization(request)
-        val result3 = distributeByConvexOptimization(request)
+        val result1 = distributeByLinearProgramming(request)
+        val result2 = distributeByLinearProgramming(request)
+        val result3 = distributeByLinearProgramming(request)
 
         result1 shouldBe result2
         result2 shouldBe result3
@@ -444,7 +445,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 0.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -453,7 +454,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         // Assets with zero target and positive weight are above target and excluded
         result.shouldBeEmpty()
@@ -464,7 +465,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 0.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -473,7 +474,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
 
@@ -492,7 +493,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("5000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -502,7 +503,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         val totalDistributed = result.values.sumOf { it }
         totalDistributed shouldBe BigDecimal("5000.00")
@@ -513,7 +514,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -523,7 +524,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         // Verify non-negativity constraint
         result.values.forEach { allocation ->
@@ -536,7 +537,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0)
             ),
             assets = listOf(
@@ -545,7 +546,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         val lowAllocation = result["LOW"]!!.toDouble()
         val highAllocation = result["HIGH"]!!.toDouble()
@@ -562,7 +563,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("10000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
                 diversify = true  // Enable diversification
             ),
@@ -573,7 +574,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         // All eligible assets should receive allocation
         result.shouldNotBeEmpty()
@@ -616,7 +617,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("10000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
                 diversify = false  // Standard LP optimization
             ),
@@ -627,7 +628,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
 
@@ -648,7 +649,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("10000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 10.0, overTarget = 0.3),
                 diversify = true  // Enable diversification
             ),
@@ -662,7 +663,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         // All underweight assets should receive allocation
         result.shouldNotBeEmpty()
@@ -705,7 +706,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
                 diversify = true
             ),
@@ -714,7 +715,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.shouldNotBeEmpty()
         result.size shouldBeExactly 1
@@ -728,7 +729,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("1000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
                 diversify = true
             ),
@@ -738,7 +739,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         result.size shouldBeExactly 2
 
@@ -811,7 +812,7 @@ class ConvexOptimizationTest {
         val request = DcaRequest(
             amount = BigDecimal("10000.00"),
             strategy = DcaStrategy(
-                type = StrategyType.CONVEX_OPTIMIZATION,
+                type = StrategyType.LINEAR_PROGRAMMING,
                 thresholds = Thresholds(fromAth = 10.0, overTarget = 0.3)
             ),
             assets = listOf(
@@ -824,7 +825,7 @@ class ConvexOptimizationTest {
             )
         )
 
-        val result = distributeByConvexOptimization(request)
+        val result = distributeByLinearProgramming(request)
 
         // Verify result is not empty
         result.shouldNotBeEmpty()
@@ -868,5 +869,266 @@ class ConvexOptimizationTest {
             sp500Allocation.shouldBeGreaterThanOrEqual(worldAllocation)
             sp500Allocation.shouldBeGreaterThanOrEqual(btcAllocation)
         }
+    }
+
+    // ========== Smart Capping Tests ==========
+
+    @Test
+    fun `should apply 90% cap when three or more eligible assets exist`() {
+        val request = DcaRequest(
+            amount = BigDecimal("10000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.LINEAR_PROGRAMMING,
+                thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
+                diversify = false  // LP optimization with smart cap
+            ),
+            assets = listOf(
+                Asset(ticker = "HIGH", weight = 5.0, target = 30.0, fromAth = 10.0),  // Dev: 25, Priority: 750 (highest)
+                Asset(ticker = "MED", weight = 10.0, target = 25.0, fromAth = 12.0),  // Dev: 15, Priority: 375
+                Asset(ticker = "LOW", weight = 15.0, target = 20.0, fromAth = 15.0)   // Dev: 5, Priority: 100
+            )
+        )
+
+        val result = distributeByLinearProgramming(request)
+
+        result.shouldNotBeEmpty()
+        result.size intShouldBeGreaterThan 1  // Should allocate to more than one asset
+
+        val highAllocation = result["HIGH"]!!.toDouble()
+        val totalDistributed = result.values.sumOf { it }.toDouble()
+
+        // HIGH should get max 90% due to smart cap (3+ assets)
+        (highAllocation / totalDistributed).shouldBeLessThan(0.91)  // Allow small rounding tolerance
+
+        // At least one other asset should get allocation
+        val otherAssets = result.filterKeys { it != "HIGH" }
+        otherAssets.shouldNotBeEmpty()
+        otherAssets.values.sumOf { it }.toDouble().shouldBeGreaterThan(900.0)  // At least 10% to others
+    }
+
+    @Test
+    fun `should apply 90% cap when top two assets have similar priorities`() {
+        val request = DcaRequest(
+            amount = BigDecimal("10000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.LINEAR_PROGRAMMING,
+                thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
+                diversify = false
+            ),
+            assets = listOf(
+                Asset(ticker = "A", weight = 5.0, target = 20.0, fromAth = 10.0),  // Dev: 15, Priority: 300
+                Asset(ticker = "B", weight = 8.0, target = 18.0, fromAth = 12.0)   // Dev: 10, Priority: 180 (60% of A)
+            )
+        )
+
+        val result = distributeByLinearProgramming(request)
+
+        result.shouldNotBeEmpty()
+        result.size shouldBeExactly 2
+
+        val aAllocation = result["A"]!!.toDouble()
+        val bAllocation = result["B"]!!.toDouble()
+
+        // A should get max 90% due to close competition
+        (aAllocation / 10000.0).shouldBeLessThan(0.91)
+
+        // B should get at least 10%
+        bAllocation.shouldBeGreaterThan(900.0)
+    }
+
+    @Test
+    fun `should not apply cap when two assets have large priority gap`() {
+        val request = DcaRequest(
+            amount = BigDecimal("10000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.LINEAR_PROGRAMMING,
+                thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
+                diversify = false
+            ),
+            assets = listOf(
+                Asset(ticker = "DOMINANT", weight = 5.0, target = 30.0, fromAth = 10.0),  // Dev: 25, Priority: 750
+                Asset(ticker = "MINOR", weight = 18.0, target = 20.0, fromAth = 12.0)     // Dev: 2, Priority: 40 (5% of DOMINANT)
+            )
+        )
+
+        val result = distributeByLinearProgramming(request)
+
+        result.shouldNotBeEmpty()
+        result.shouldContainKey("DOMINANT")
+
+        val dominantAllocation = result["DOMINANT"]!!.toDouble()
+
+        // DOMINANT should get close to 100% (no cap due to large priority gap)
+        dominantAllocation.shouldBeGreaterThan(9900.0)  // Should get at least 99%
+    }
+
+    @Test
+    fun `should apply 90% cap when all deviations are small`() {
+        val request = DcaRequest(
+            amount = BigDecimal("10000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.LINEAR_PROGRAMMING,
+                thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
+                diversify = false
+            ),
+            assets = listOf(
+                Asset(ticker = "A", weight = 48.0, target = 50.0, fromAth = 10.0),  // Dev: 2.0 (small)
+                Asset(ticker = "B", weight = 29.0, target = 30.0, fromAth = 12.0)   // Dev: 1.0 (small)
+            )
+        )
+
+        val result = distributeByLinearProgramming(request)
+
+        result.shouldNotBeEmpty()
+        result.size shouldBeExactly 2
+
+        val aAllocation = result["A"]!!.toDouble()
+        val bAllocation = result["B"]!!.toDouble()
+
+        // A should get max 90% due to small deviations
+        (aAllocation / 10000.0).shouldBeLessThan(0.91)
+
+        // B should get at least 10%
+        bAllocation.shouldBeGreaterThan(900.0)
+    }
+
+    @Test
+    fun `should respect explicit maxSingleAssetPct override`() {
+        val request = DcaRequest(
+            amount = BigDecimal("10000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.LINEAR_PROGRAMMING,
+                thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
+                diversify = false,
+                maxSingleAssetPct = 0.75  // Explicit 75% cap
+            ),
+            assets = listOf(
+                Asset(ticker = "HIGH", weight = 5.0, target = 30.0, fromAth = 10.0),  // Dev: 25, Priority: 750
+                Asset(ticker = "LOW", weight = 18.0, target = 20.0, fromAth = 12.0)   // Dev: 2, Priority: 40
+            )
+        )
+
+        val result = distributeByLinearProgramming(request)
+
+        result.shouldNotBeEmpty()
+        result.size shouldBeExactly 2
+
+        val highAllocation = result["HIGH"]!!.toDouble()
+        val lowAllocation = result["LOW"]!!.toDouble()
+
+        // HIGH should get max 75% due to explicit override
+        (highAllocation / 10000.0).shouldBeLessThan(0.76)
+
+        // LOW should get at least 25%
+        lowAllocation.shouldBeGreaterThan(2400.0)
+    }
+
+    @Test
+    fun `should allow 100% allocation when explicitly set via maxSingleAssetPct`() {
+        val request = DcaRequest(
+            amount = BigDecimal("10000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.LINEAR_PROGRAMMING,
+                thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
+                diversify = false,
+                maxSingleAssetPct = 1.0  // Explicit 100% - disable smart cap
+            ),
+            assets = listOf(
+                Asset(ticker = "A", weight = 48.0, target = 50.0, fromAth = 10.0),  // Dev: 2.0 (would trigger smart cap)
+                Asset(ticker = "B", weight = 29.0, target = 30.0, fromAth = 12.0)   // Dev: 1.0
+            )
+        )
+
+        val result = distributeByLinearProgramming(request)
+
+        result.shouldNotBeEmpty()
+        result.shouldContainKey("A")
+
+        val aAllocation = result["A"]!!.toDouble()
+
+        // A should get 100% (smart cap overridden)
+        aAllocation.shouldBeGreaterThan(9900.0)
+    }
+
+    @Test
+    fun `should not apply cap for single eligible asset`() {
+        val request = DcaRequest(
+            amount = BigDecimal("10000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.LINEAR_PROGRAMMING,
+                thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
+                diversify = false
+            ),
+            assets = listOf(
+                Asset(ticker = "ONLY", weight = 10.0, target = 30.0, fromAth = 10.0)  // Only eligible asset
+            )
+        )
+
+        val result = distributeByLinearProgramming(request)
+
+        result.shouldNotBeEmpty()
+        result.size shouldBeExactly 1
+        result["ONLY"] shouldBe BigDecimal("10000.00")  // Gets 100% (no cap for single asset)
+    }
+
+    @Test
+    fun `should apply smart cap in realistic scenario with multiple assets`() {
+        val request = DcaRequest(
+            amount = BigDecimal("10000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.LINEAR_PROGRAMMING,
+                thresholds = Thresholds(fromAth = 10.0, overTarget = 0.3),
+                diversify = false
+            ),
+            assets = listOf(
+                Asset(ticker = "S&P500", weight = 48.6, target = 50.0, fromAth = 0.0),  // Dev: 1.4, Priority: 70.0
+                Asset(ticker = "BTC", weight = 19.1, target = 20.0, fromAth = 0.0),     // Dev: 0.9, Priority: 18.0
+                Asset(ticker = "WORLD", weight = 8.5, target = 11.0, fromAth = 0.0),    // Dev: 2.5, Priority: 27.5
+                Asset(ticker = "EU", weight = 9.9, target = 8.0, fromAth = 0.0)         // Overweight (excluded)
+            )
+        )
+
+        val result = distributeByLinearProgramming(request)
+
+        result.shouldNotBeEmpty()
+        result.size intShouldBeGreaterThan 1  // Should allocate to multiple assets due to smart cap
+
+        val totalDistributed = result.values.sumOf { it }.toDouble()
+        totalDistributed shouldBe 10000.0
+
+        // S&P500 has highest priority but should be capped at 90% (3 eligible assets)
+        val sp500Allocation = result["S&P500"]!!.toDouble()
+        (sp500Allocation / totalDistributed).shouldBeLessThan(0.91)
+
+        // At least one other asset should get allocation
+        val otherAssets = result.filterKeys { it != "S&P500" }
+        otherAssets.shouldNotBeEmpty()
+        otherAssets.values.sumOf { it }.toDouble().shouldBeGreaterThan(900.0)
+    }
+
+    @Test
+    fun `should verify cap works with boundary case at exactly 50 percent priority ratio`() {
+        val request = DcaRequest(
+            amount = BigDecimal("10000.00"),
+            strategy = DcaStrategy(
+                type = StrategyType.LINEAR_PROGRAMMING,
+                thresholds = Thresholds(fromAth = 5.0, overTarget = 0.0),
+                diversify = false
+            ),
+            assets = listOf(
+                Asset(ticker = "A", weight = 5.0, target = 20.0, fromAth = 10.0),  // Dev: 15, Priority: 300
+                Asset(ticker = "B", weight = 10.0, target = 15.0, fromAth = 12.0)  // Dev: 5, Priority: 75 (25% of A - below 50%)
+            )
+        )
+
+        val result = distributeByLinearProgramming(request)
+
+        result.shouldNotBeEmpty()
+
+        val aAllocation = result["A"]!!.toDouble()
+
+        // Priority ratio is 25% (below 50% threshold), so no cap should be applied
+        // A should get close to 100%
+        aAllocation.shouldBeGreaterThan(9500.0)
     }
 }

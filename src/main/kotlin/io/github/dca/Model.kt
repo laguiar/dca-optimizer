@@ -141,7 +141,8 @@ data class DcaStrategy(
         fromAth = ATH_THRESHOLD,
         overTarget = OVER_TARGET_THRESHOLD
     ),
-    val diversify: Boolean = false
+    val diversify: Boolean = false,
+    val maxSingleAssetPct: Double? = null
 ) {
     companion object {
         fun default() = DcaStrategy(
@@ -150,7 +151,8 @@ data class DcaStrategy(
                 fromAth = ATH_THRESHOLD,
                 overTarget = OVER_TARGET_THRESHOLD
             ),
-            diversify = false
+            diversify = false,
+            maxSingleAssetPct = null
         )
     }
 }
@@ -162,7 +164,7 @@ data class Thresholds(
 )
 
 enum class StrategyType {
-    TARGET, WEIGHT, PORTFOLIO, RATING, DIVIDEND, REBALANCE, CONVEX_OPTIMIZATION
+    TARGET, WEIGHT, PORTFOLIO, RATING, DIVIDEND, REBALANCE, LINEAR_PROGRAMMING
 }
 
 private object BigDecimalNumericSerializer : KSerializer<BigDecimal> {

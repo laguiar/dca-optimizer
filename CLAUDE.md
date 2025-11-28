@@ -49,7 +49,7 @@ This is a Kotlin/Ktor application that provides DCA (Dollar-Cost Averaging) opti
 - **TARGET**: Distribution based on asset targets (excludes over-weighted)
 - **PORTFOLIO**: All assets invested, over-weighted get reduced targets
 - **RATING**: Distribution based on asset ratings only
-- **CONVEX_OPTIMIZATION**: Uses mathematical optimization (linear programming) to find the optimal distribution that minimizes deviation from target weights while respecting constraints.
+- **LINEAR_PROGRAMMING**: Uses mathematical optimization (linear programming) to find the optimal distribution that minimizes deviation from target weights while respecting constraints.
 
 ## Development Guidelines
 

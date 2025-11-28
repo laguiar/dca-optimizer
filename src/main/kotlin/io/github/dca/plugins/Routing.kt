@@ -1,7 +1,7 @@
 package io.github.dca.plugins
 
 import io.github.dca.*
-import io.github.dca.strategy.distributeByConvexOptimization
+import io.github.dca.strategy.distributeByLinearProgramming
 import io.github.dca.strategy.distributeByPortfolio
 import io.github.dca.strategy.distributeByWeight
 import io.github.dca.withdrawal.calculateAdvancedWithdrawalDuration
@@ -40,7 +40,7 @@ private fun processOptimization(request: DcaRequest): DcaResponse =
         StrategyType.WEIGHT -> calculateDistribution(request, ::distributeByWeight)
         StrategyType.PORTFOLIO -> calculateDistribution(request, ::distributeByPortfolio)
         StrategyType.RATING -> calculateDistribution(request, ::distributeByRating)
-        StrategyType.CONVEX_OPTIMIZATION -> calculateDistribution(request, ::distributeByConvexOptimization)
+        StrategyType.LINEAR_PROGRAMMING -> calculateDistribution(request, ::distributeByLinearProgramming)
         StrategyType.DIVIDEND -> TODO()
         StrategyType.REBALANCE -> TODO()
     }

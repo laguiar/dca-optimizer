@@ -52,13 +52,13 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 - **TARGET**: The asset's target is used to determine the DCA distribution, over-weighted assets are discarded. _(Assets with same target will get the same result)_
 - **PORTFOLIO**: All assets will be invested, but over-weighted assets will have its target reduced and the difference is distributed among all under-target assets.
 - **RATING**: All rated assets will be invested, **ONLY** the rating values will be used to calculate the distribution. _(Think on a 5 stars rating system)_
-- **CONVEX_OPTIMIZATION**: Uses mathematical optimization (linear programming) to find the optimal distribution that minimizes deviation from target weights while respecting constraints. Provides mathematically optimal solutions compared to heuristic approaches.
+- **LINEAR_PROGRAMMING**: Uses mathematical optimization (linear programming) to find the optimal distribution that minimizes deviation from target weights while respecting constraints. Provides mathematically optimal solutions compared to heuristic approaches.
   - **Default mode** (`diversify: false`): Allocates all funds to the highest priority asset (corner solution)
   - **Diversified mode** (`diversify: true`): Spreads funds proportionally across all eligible assets based on priority scores
 
-#### CONVEX_OPTIMIZATION Strategy Details
+#### LINEAR_PROGRAMMING Strategy Details
 
-The CONVEX_OPTIMIZATION strategy uses linear programming to optimize asset allocation based on **priority scores**:
+The LINEAR_PROGRAMMING strategy uses linear programming to optimize asset allocation based on **priority scores**:
 
 **Priority Calculation:**
 ```
@@ -91,7 +91,41 @@ With $10,000 to invest:
 
 Linear programming with linear objectives always finds optimal solutions at the **corner points** (vertices) of the feasible region. Since all funds must be allocated and the asset with the highest priority coefficient maximizes the objective function, the optimal solution is to allocate everything to that asset. This is mathematically correct but results in concentrated positions.
 
-#### Strategy Comparison: CONVEX vs WEIGHT vs PORTFOLIO
+**Smart Concentration Cap** (`maxSingleAssetPct`):
+
+To prevent extreme concentration in `diversify: false` mode, the optimizer includes smart capping logic that automatically limits single-asset allocation to 90% in specific scenarios:
+
+**When Smart Cap Applies (automatically set to 90%):**
+
+1. **Three or more eligible assets** - Multiple opportunities exist for diversification
+2. **Close priority competition** - Top two assets have similar priorities (second within 50% of first)
+3. **Small deviations** - All assets within 5% of their targets (minor rebalancing only)
+
+**When Smart Cap Does NOT Apply (100% allowed):**
+
+1. **Single eligible asset** - No choice available
+2. **Clear winner** - One asset has significantly higher priority (2x or more than second)
+3. **Large deviations** - At least one asset is 5%+ below target (aggressive rebalancing needed)
+
+**Manual Override:**
+
+You can explicitly control the cap via `maxSingleAssetPct`:
+
+```json
+{
+  "strategy": {
+    "type": "LINEAR_PROGRAMMING",
+    "diversify": false,
+    "maxSingleAssetPct": 0.75  // Force 75% cap
+  }
+}
+```
+
+- `maxSingleAssetPct: 0.75` → 75% maximum allocation to any single asset
+- `maxSingleAssetPct: 1.0` → 100% allowed (disables smart cap entirely)
+- `maxSingleAssetPct: null` → Use smart cap logic (default)
+
+#### Strategy Comparison: LINEAR_PROGRAMMING vs WEIGHT vs PORTFOLIO
 
 While `diversify: true` mode spreads investments across assets, it differs from other strategies in how it calculates allocation priorities.
 
@@ -101,7 +135,7 @@ allocation_factor = (target - weight) / Σ(all_deviations)
 ```
 This strategy only considers **how far** each asset is from its target, treating all deviations equally.
 
-**CONVEX (diversify: true)** - Target-weighted priority allocation:
+**LINEAR_PROGRAMMING (diversify: true)** - Target-weighted priority allocation:
 ```
 priority = (target - weight) × target
 allocation_factor = priority / Σ(all_priorities)
@@ -127,10 +161,10 @@ Investing $10,000:
 | Strategy | Asset A | Asset B | Asset C | Rationale |
 |----------|---------|---------|---------|-----------|
 | **WEIGHT** | $2,916 (29.2%) | $5,208 (52.1%) | $1,876 (18.7%) | Asset B has the largest deviation (2.5%) |
-| **CONVEX (diversify=true)** | $6,062 (60.6%) | $2,381 (23.8%) | $1,557 (15.6%) | Asset A has the highest priority (70.0 = 1.4 × 50.0) |
+| **LINEAR_PROGRAMMING (diversify=true)** | $6,062 (60.6%) | $2,381 (23.8%) | $1,557 (15.6%) | Asset A has the highest priority (70.0 = 1.4 × 50.0) |
 | **PORTFOLIO** | $3,333 (33.3%) | $3,333 (33.3%) | $3,333 (33.3%) | Includes all assets with adjusted targets |
 
-**Mathematical Breakdown for CONVEX:**
+**Mathematical Breakdown for LINEAR_PROGRAMMING:**
 ```
 Asset A: priority = 1.4 × 50.0 = 70.0
 Asset B: priority = 2.5 × 11.0 = 27.5
@@ -145,8 +179,8 @@ Asset C allocation = (18.0 / 115.5) × $10,000 = $1,557
 **When to Use Each:**
 
 - **WEIGHT**: You want pure rebalancing based solely on deviation, treating all assets equally regardless of their portfolio importance.
-- **CONVEX (diversify=true)**: You want to prioritize your core holdings (high-target assets) while still maintaining diversification across all underweighted assets.
-- **CONVEX (diversify=false)**: You want mathematically optimal aggressive rebalancing, accepting concentrated positions.
+- **LINEAR_PROGRAMMING (diversify=true)**: You want to prioritize your core holdings (high-target assets) while still maintaining diversification across all underweighted assets.
+- **LINEAR_PROGRAMMING (diversify=false)**: You want mathematically optimal aggressive rebalancing, accepting concentrated positions.
 - **PORTFOLIO**: You want conservative allocation that includes the entire portfolio, even overweighted assets.
 
 ### Payload examples
@@ -229,12 +263,12 @@ Asset C allocation = (18.0 / 115.5) × $10,000 = $1,557
 }
 ```
 
-**CONVEX_OPTIMIZATION (Default - Corner Solution)**
+**LINEAR_PROGRAMMING (Default - Corner Solution)**
 ```json
 {
     "amount": "1000.00",
     "strategy": {
-        "type": "CONVEX_OPTIMIZATION",
+        "type": "LINEAR_PROGRAMMING",
         "thresholds": {
             "fromAth": 10.0,
             "overTarget": 0.0
@@ -264,7 +298,7 @@ Asset C allocation = (18.0 / 115.5) × $10,000 = $1,557
 }
 ```
 
-**Response** (all funds go to highest priority asset):
+**Response** (without smart cap - only 2 assets with large priority gap):
 ```json
 {
     "distribution": {
@@ -274,12 +308,58 @@ Asset C allocation = (18.0 / 115.5) × $10,000 = $1,557
 }
 ```
 
-**CONVEX_OPTIMIZATION (Diversified Mode)**
+**LINEAR_PROGRAMMING (With Smart Cap - Multiple Assets)**
 ```json
 {
     "amount": "10000.00",
     "strategy": {
-        "type": "CONVEX_OPTIMIZATION",
+        "type": "LINEAR_PROGRAMMING",
+        "thresholds": {
+            "fromAth": 5.0,
+            "overTarget": 0.0
+        },
+        "diversify": false
+    },
+    "assets": [
+        {
+            "ticker": "HIGH",
+            "weight": 5.0,
+            "target": 30.0,
+            "fromAth": 10.0
+        },
+        {
+            "ticker": "MED",
+            "weight": 10.0,
+            "target": 25.0,
+            "fromAth": 12.0
+        },
+        {
+            "ticker": "LOW",
+            "weight": 15.0,
+            "target": 20.0,
+            "fromAth": 15.0
+        }
+    ]
+}
+```
+
+**Response** (smart cap applied - 3+ assets, so max 90% to one asset):
+```json
+{
+    "distribution": {
+        "HIGH": "9000.00",
+        "MED": "1000.00",
+        "LOW": "0.00"
+    }
+}
+```
+
+**LINEAR_PROGRAMMING (Diversified Mode)**
+```json
+{
+    "amount": "10000.00",
+    "strategy": {
+        "type": "LINEAR_PROGRAMMING",
         "thresholds": {
             "fromAth": 10.0,
             "overTarget": 0.3

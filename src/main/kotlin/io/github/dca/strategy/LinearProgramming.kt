@@ -9,7 +9,7 @@ private const val MAX_SIMPLEX_ITERATIONS = 1000
 private const val ALLOCATION_SCALE = 2
 
 /**
- * Implements portfolio optimization using convex optimization techniques.
+ * Implements portfolio optimization using linear programming (LP) techniques.
  *
  * This strategy formulates the DCA distribution problem as a linear programming problem:
  *
@@ -47,8 +47,8 @@ private const val ALLOCATION_SCALE = 2
  *
  * This provides a balance between priority-based optimization and portfolio diversification.
  */
-fun distributeByConvexOptimization(request: DcaRequest): Distribution =
-    filterAssetsByConvexConstraints(request.assets, request.strategy.thresholds)
+fun distributeByLinearProgramming(request: DcaRequest): Distribution =
+    filterAssetsByLinearConstraints(request.assets, request.strategy.thresholds)
         .let { eligibleAssets ->
             when {
                 eligibleAssets.isEmpty() -> emptyMap()
@@ -57,7 +57,7 @@ fun distributeByConvexOptimization(request: DcaRequest): Distribution =
             }
         }
 
-private fun filterAssetsByConvexConstraints(assets: List<Asset>, thresholds: Thresholds): List<Asset> =
+private fun filterAssetsByLinearConstraints(assets: List<Asset>, thresholds: Thresholds): List<Asset> =
     assets.filter { asset ->
         // Include assets that are below target weight
         asset.isWeightBellowTarget &&
@@ -96,25 +96,71 @@ private fun distributeDiversified(request: DcaRequest, eligibleAssets: List<Asse
     }.toMap()
 }
 
+/**
+ * Determines if a concentration cap should be applied to prevent extreme single-asset allocation.
+ *
+ * Smart capping logic applies a 90% maximum allocation when:
+ * 1. Three or more eligible assets exist (multiple opportunities to diversify)
+ * 2. Top two assets have similar priorities (within 50% - competition is close)
+ * 3. All deviations are small (< 5% from target - minor rebalancing only)
+ *
+ * @param assets List of eligible assets to analyze
+ * @param priorities Calculated priority scores for each asset
+ * @return true if a 90% cap should be applied to prevent concentration
+ */
+private fun shouldApplyConcentrationCap(assets: List<Asset>, priorities: List<Double>): Boolean {
+    val n = assets.size
+
+    // Always cap when 3+ assets available (multiple opportunities)
+    if (n >= 3) return true
+
+    // Never cap with only 1 asset (no choice)
+    if (n == 1) return false
+
+    // For 2 assets, cap if priorities are close (competitive choice)
+    if (n == 2) {
+        val sortedPriorities = priorities.sortedDescending()
+        val topPriority = sortedPriorities[0]
+        val secondPriority = sortedPriorities[1]
+
+        // If second is within 50% of top, they're competitive - apply cap
+        val ratio = secondPriority / topPriority
+        if (ratio >= 0.50) return true
+    }
+
+    // Cap if all deviations are small (minor rebalancing - < 5% from target)
+    val maxDeviation = assets.maxOf { (it.target - it.weight).coerceAtLeast(0.0) }
+    if (maxDeviation < 5.0) return true
+
+    return false
+}
+
 private fun solveOptimizationProblem(request: DcaRequest, eligibleAssets: List<Asset>): Distribution {
     val n = eligibleAssets.size
     val totalAmount = request.amount.toDouble()
 
     return try {
+        // Calculate priorities first (needed for both objective function and smart cap logic)
+        val priorities = eligibleAssets.map { asset ->
+            val deviation = (asset.target - asset.weight).coerceAtLeast(0.0)
+            (deviation * asset.target).coerceAtLeast(1e-10)
+        }
+
+        // Determine if concentration cap should be applied
+        val smartCapSuggested = shouldApplyConcentrationCap(eligibleAssets, priorities)
+        val maxAllocationPct = when {
+            // Explicit user override takes precedence
+            request.strategy.maxSingleAssetPct != null -> request.strategy.maxSingleAssetPct
+            // Apply smart cap (90%) if suggested
+            smartCapSuggested -> 0.90
+            // Otherwise no cap (100%)
+            else -> 1.0
+        }
+
         // Use linear programming to maximize priority-weighted allocation
         // Priority is based on how far below target the asset is and its target weight
-        val objectiveCoefficients = eligibleAssets.map { asset ->
-            val targetWeight = asset.target
-            val currentWeight = asset.weight
-            val deviation = (targetWeight - currentWeight).coerceAtLeast(0.0)
-
-            // Priority score: allocate more to assets with:
-            // 1. Higher deviation from target (further below target)
-            // 2. Higher target weight (more important in portfolio)
-            // Since we minimize, negate the priority to maximize allocation to high-priority assets
-            val priority = deviation * targetWeight
-            -priority.coerceAtLeast(1e-10) // Prevent division by zero, ensure negative for maximization
-        }.toDoubleArray()
+        // Since we minimize, negate the priority to maximize allocation to high-priority assets
+        val objectiveCoefficients = priorities.map { -it }.toDoubleArray()
 
         val objective = LinearObjectiveFunction(objectiveCoefficients, 0.0)
 
@@ -125,19 +171,29 @@ private fun solveOptimizationProblem(request: DcaRequest, eligibleAssets: List<A
         val equalityCoefficients = DoubleArray(n) { 1.0 }
         constraints.add(LinearConstraint(equalityCoefficients, Relationship.EQ, totalAmount))
 
-        // Non-negativity constraints: allocation_i >= 0
+        // Non-negativity and optional max allocation constraints
         for (i in 0 until n) {
             val coefficients = DoubleArray(n) { 0.0 }
             coefficients[i] = 1.0
+
+            // Min: allocation_i >= 0
             constraints.add(LinearConstraint(coefficients, Relationship.GEQ, 0.0))
+
+            // Max: allocation_i <= maxAllocationPct * total (if capped)
+            if (maxAllocationPct < 1.0) {
+                constraints.add(
+                    LinearConstraint(coefficients, Relationship.LEQ, totalAmount * maxAllocationPct)
+                )
+            }
         }
 
         // Solve the linear programming problem
-        val solution = SimplexSolver(maxIterations = MAX_SIMPLEX_ITERATIONS).optimize(
-            objective,
-            LinearConstraintSet(constraints),
-            GoalType.MINIMIZE
-        )
+        val solution = SimplexSolver(maxIterations = MAX_SIMPLEX_ITERATIONS)
+            .optimize(
+                objective = objective,
+                constraints = LinearConstraintSet(constraints),
+                goalType = GoalType.MINIMIZE
+            )
 
         // Convert solution to distribution map
         eligibleAssets.mapIndexed { index, asset ->
