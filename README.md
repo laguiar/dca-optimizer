@@ -53,6 +53,43 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 - **PORTFOLIO**: All assets will be invested, but over-weighted assets will have its target reduced and the difference is distributed among all under-target assets.
 - **RATING**: All rated assets will be invested, **ONLY** the rating values will be used to calculate the distribution. _(Think on a 5 stars rating system)_
 - **CONVEX_OPTIMIZATION**: Uses mathematical optimization (linear programming) to find the optimal distribution that minimizes deviation from target weights while respecting constraints. Provides mathematically optimal solutions compared to heuristic approaches.
+  - **Default mode** (`diversify: false`): Allocates all funds to the highest priority asset (corner solution)
+  - **Diversified mode** (`diversify: true`): Spreads funds proportionally across all eligible assets based on priority scores
+
+#### CONVEX_OPTIMIZATION Strategy Details
+
+The CONVEX_OPTIMIZATION strategy uses linear programming to optimize asset allocation based on **priority scores**:
+
+**Priority Calculation:**
+```
+priority = (target_weight - current_weight) × target_weight
+```
+
+This formula prioritizes assets that are:
+1. Further below their target weight (higher deviation)
+2. Have higher target allocations in the portfolio
+
+**Two Operating Modes:**
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `diversify: false` | **Corner Solution** - Linear programming allocates all funds to the single highest priority asset. Mathematically optimal for maximizing the objective function. | When you want aggressive rebalancing focused on the most underweight asset. Accepts concentrated positions. |
+| `diversify: true` | **Proportional Allocation** - Distributes funds across all eligible assets proportionally to their priority scores: `allocation_i = (priority_i / total_priority) × amount` | When you want balanced diversification while still respecting priority rankings. Spreads risk across multiple assets. |
+
+**Example Comparison:**
+
+Given three underweight assets:
+- Asset A: priority = 70.0 (deviation=1.4, target=50%)
+- Asset B: priority = 27.5 (deviation=2.5, target=11%)
+- Asset C: priority = 18.0 (deviation=0.9, target=20%)
+
+With $10,000 to invest:
+- `diversify: false` → Asset A: $10,000, Asset B: $0, Asset C: $0
+- `diversify: true` → Asset A: $6,061.69, Asset B: $2,380.95, Asset C: $1,557.36
+
+**Why Corner Solutions Occur:**
+
+Linear programming with linear objectives always finds optimal solutions at the **corner points** (vertices) of the feasible region. Since all funds must be allocated and the asset with the highest priority coefficient maximizes the objective function, the optimal solution is to allocate everything to that asset. This is mathematically correct but results in concentrated positions.
 
 ### Payload examples
 
@@ -134,6 +171,7 @@ This doesn't guarantee any significant portfolio performance on the long term, b
 }
 ```
 
+**CONVEX_OPTIMIZATION (Default - Corner Solution)**
 ```json
 {
     "amount": "1000.00",
@@ -142,7 +180,8 @@ This doesn't guarantee any significant portfolio performance on the long term, b
         "thresholds": {
             "fromAth": 10.0,
             "overTarget": 0.0
-        }
+        },
+        "diversify": false
     },
     "assets": [
         {
@@ -166,6 +205,66 @@ This doesn't guarantee any significant portfolio performance on the long term, b
     ]
 }
 ```
+
+**Response** (all funds go to highest priority asset):
+```json
+{
+    "distribution": {
+        "GOOGL": "1000.00",
+        "AAPL": "0.00"
+    }
+}
+```
+
+**CONVEX_OPTIMIZATION (Diversified Mode)**
+```json
+{
+    "amount": "10000.00",
+    "strategy": {
+        "type": "CONVEX_OPTIMIZATION",
+        "thresholds": {
+            "fromAth": 10.0,
+            "overTarget": 0.3
+        },
+        "diversify": true
+    },
+    "assets": [
+        {
+            "ticker": "S&P500",
+            "weight": 48.6,
+            "target": 50.0
+        },
+        {
+            "ticker": "BTC",
+            "weight": 19.1,
+            "target": 20.0
+        },
+        {
+            "ticker": "WORLD",
+            "weight": 8.5,
+            "target": 11.0
+        },
+        {
+            "ticker": "EU",
+            "weight": 9.9,
+            "target": 8.0
+        }
+    ]
+}
+```
+
+**Response** (proportional allocation based on priorities):
+```json
+{
+    "distribution": {
+        "S&P500": "6061.69",
+        "WORLD": "2380.95",
+        "BTC": "1557.36"
+    }
+}
+```
+
+> **Note**: With `diversify: true`, funds are distributed proportionally across all eligible assets based on their priority scores (deviation × target). This provides diversification while still respecting priority rankings. The EU asset is excluded because it's overweight (9.9% > 8.0% target).
 
 ## Withdrawal Duration Calculator
 

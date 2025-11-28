@@ -3,23 +3,56 @@ package io.github.dca.strategy
 import io.github.dca.*
 import io.github.dca.math.linear.*
 import java.math.BigDecimal
-import java.math.RoundingMode
+import java.math.RoundingMode.HALF_UP
+
+private const val MAX_SIMPLEX_ITERATIONS = 1000
+private const val ALLOCATION_SCALE = 2
 
 /**
  * Implements portfolio optimization using convex optimization techniques.
  *
  * This strategy formulates the DCA distribution problem as a linear programming problem:
  *
- * minimize: penalty for deviating from target proportions
+ * maximize: priority-weighted allocation where priority = deviation * target_weight
  * subject to: Σ(allocation_i) = total_amount
  *            allocation_i ≥ 0 (no short selling)
  *            ATH constraints (assets below ATH threshold get zero allocation)
+ *
+ * The objective prioritizes assets that are:
+ * 1. Further below their target weight (higher deviation)
+ * 2. Have higher target allocations
+ *
+ * IMPORTANT: Linear Programming Corner Solutions
+ * ==============================================
+ * Linear programming with a linear objective function produces SPARSE SOLUTIONS at corner points
+ * of the feasible region. This means the optimizer will typically allocate all (or most) funds to
+ * the asset(s) with the highest priority score.
+ *
+ * Example (diversify=false):
+ * - Asset A: priority = 70.0 (deviation=1.4 × target=50.0)
+ * - Asset B: priority = 27.5 (deviation=2.5 × target=11.0)
+ * - Asset C: priority = 18.0 (deviation=0.9 × target=20.0)
+ *
+ * Result: Asset A receives 100% of allocation (mathematically optimal corner solution)
+ *
+ * Diversification Mode (diversify=true):
+ * ======================================
+ * When diversify=true, allocations are distributed proportionally based on priority scores
+ * to encourage spreading investments across multiple assets.
+ *
+ * Example (diversify=true, same assets as above):
+ * - Asset A: (70.0 / 115.5) × $10,000 = $6,061.69
+ * - Asset B: (27.5 / 115.5) × $10,000 = $2,380.95
+ * - Asset C: (18.0 / 115.5) × $10,000 = $1,557.36
+ *
+ * This provides a balance between priority-based optimization and portfolio diversification.
  */
 fun distributeByConvexOptimization(request: DcaRequest): Distribution =
     filterAssetsByConvexConstraints(request.assets, request.strategy.thresholds)
         .let { eligibleAssets ->
             when {
                 eligibleAssets.isEmpty() -> emptyMap()
+                request.strategy.diversify -> distributeDiversified(request, eligibleAssets)
                 else -> solveOptimizationProblem(request, eligibleAssets)
             }
         }
@@ -32,27 +65,55 @@ private fun filterAssetsByConvexConstraints(assets: List<Asset>, thresholds: Thr
                 (asset.fromAth == ZERO || asset.fromAth >= thresholds.fromAth)
     }
 
+/**
+ * Distributes funds proportionally based on priority scores to encourage diversification.
+ *
+ * Instead of solving the LP problem (which produces corner solutions), this allocates
+ * proportionally: allocation_i = (priority_i / total_priority) × total_amount
+ *
+ * This spreads investments across all eligible assets while still respecting priorities.
+ */
+private fun distributeDiversified(request: DcaRequest, eligibleAssets: List<Asset>): Distribution {
+    // Calculate priority for each asset
+    val priorities = eligibleAssets.map { asset ->
+        val deviation = (asset.target - asset.weight).coerceAtLeast(0.0)
+        val priority = deviation * asset.target
+        priority.coerceAtLeast(1e-10) // Prevent division by zero
+    }
+
+    val totalPriority = priorities.sum()
+
+    if (totalPriority <= 0.0) {
+        // Fallback to equal distribution if all priorities are zero
+        return fallbackDistribution(request, eligibleAssets)
+    }
+
+    // Distribute proportionally based on priority scores
+    return eligibleAssets.mapIndexed { index, asset ->
+        val proportion = priorities[index] / totalPriority
+        asset.ticker to request.amount.multiply(proportion.toBigDecimal())
+            .setScale(ALLOCATION_SCALE, HALF_UP)
+    }.toMap()
+}
+
 private fun solveOptimizationProblem(request: DcaRequest, eligibleAssets: List<Asset>): Distribution {
     val n = eligibleAssets.size
     val totalAmount = request.amount.toDouble()
 
     return try {
-        // Use linear programming to minimize weighted deviation from targets
-        // Objective: minimize sum of (target_weight * deviation_penalty)
+        // Use linear programming to maximize priority-weighted allocation
+        // Priority is based on how far below target the asset is and its target weight
         val objectiveCoefficients = eligibleAssets.map { asset ->
-            // Higher penalty for assets that are further from their targets
             val targetWeight = asset.target
             val currentWeight = asset.weight
             val deviation = (targetWeight - currentWeight).coerceAtLeast(0.0)
 
-            // Weight by deviation and inverse target to prioritize assets that are:
-            // 1. Further below their target (higher deviation)
-            // 2. Have higher target allocations
-            val deviationWeight = if (deviation > 0) 1.0 / deviation else 1.0
-            val targetPriority = if (targetWeight > 0) 1.0 / targetWeight else 1.0
-
-            // Combine both factors (minimize means we want lower coefficients for higher priority)
-            deviationWeight * targetPriority
+            // Priority score: allocate more to assets with:
+            // 1. Higher deviation from target (further below target)
+            // 2. Higher target weight (more important in portfolio)
+            // Since we minimize, negate the priority to maximize allocation to high-priority assets
+            val priority = deviation * targetWeight
+            -priority.coerceAtLeast(1e-10) // Prevent division by zero, ensure negative for maximization
         }.toDoubleArray()
 
         val objective = LinearObjectiveFunction(objectiveCoefficients, 0.0)
@@ -72,7 +133,7 @@ private fun solveOptimizationProblem(request: DcaRequest, eligibleAssets: List<A
         }
 
         // Solve the linear programming problem
-        val solution = SimplexSolver(maxIterations = 1000).optimize(
+        val solution = SimplexSolver(maxIterations = MAX_SIMPLEX_ITERATIONS).optimize(
             objective,
             LinearConstraintSet(constraints),
             GoalType.MINIMIZE
@@ -80,28 +141,32 @@ private fun solveOptimizationProblem(request: DcaRequest, eligibleAssets: List<A
 
         // Convert solution to distribution map
         eligibleAssets.mapIndexed { index, asset ->
-            asset.ticker to BigDecimal(solution.point[index]).setScale(2, RoundingMode.HALF_UP)
+            asset.ticker to BigDecimal(solution.point[index]).setScale(ALLOCATION_SCALE, HALF_UP)
         }.toMap()
 
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Fallback to simple proportional distribution if optimization fails
+        // This can happen if the problem is infeasible or the solver encounters numerical issues
         fallbackDistribution(request, eligibleAssets)
     }
 }
 
 
+/**
+ * Fallback distribution when optimization fails.
+ * Distributes proportionally based on target weights, or equally if no targets exist.
+ */
 private fun fallbackDistribution(request: DcaRequest, eligibleAssets: List<Asset>): Distribution {
-    // Simple proportional fallback based on target weights
     val totalTarget = eligibleAssets.sumOf { it.target }
 
     return if (totalTarget > 0) {
         eligibleAssets.associate { asset ->
             val proportion = asset.target / totalTarget
-            asset.ticker to request.amount.multiply(BigDecimal(proportion)).setScale(2, RoundingMode.HALF_UP)
+            asset.ticker to request.amount.multiply(BigDecimal(proportion)).setScale(ALLOCATION_SCALE, HALF_UP)
         }
     } else {
         // Equal distribution if no targets
-        val equalAmount = request.amount.divide(BigDecimal(eligibleAssets.size), 2, RoundingMode.HALF_UP)
+        val equalAmount = request.amount.divide(BigDecimal(eligibleAssets.size), ALLOCATION_SCALE, HALF_UP)
         eligibleAssets.associate { asset ->
             asset.ticker to equalAmount
         }

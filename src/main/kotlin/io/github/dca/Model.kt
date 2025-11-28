@@ -140,7 +140,8 @@ data class DcaStrategy(
     val thresholds: Thresholds = Thresholds(
         fromAth = ATH_THRESHOLD,
         overTarget = OVER_TARGET_THRESHOLD
-    )
+    ),
+    val diversify: Boolean = false
 ) {
     companion object {
         fun default() = DcaStrategy(
@@ -148,7 +149,8 @@ data class DcaStrategy(
             thresholds = Thresholds(
                 fromAth = ATH_THRESHOLD,
                 overTarget = OVER_TARGET_THRESHOLD
-            )
+            ),
+            diversify = false
         )
     }
 }
