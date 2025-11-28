@@ -144,7 +144,7 @@ private fun solveOptimizationProblem(request: DcaRequest, eligibleAssets: List<A
             asset.ticker to BigDecimal(solution.point[index]).setScale(ALLOCATION_SCALE, HALF_UP)
         }.toMap()
 
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Fallback to simple proportional distribution if optimization fails
         // This can happen if the problem is infeasible or the solver encounters numerical issues
         fallbackDistribution(request, eligibleAssets)

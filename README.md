@@ -91,6 +91,64 @@ With $10,000 to invest:
 
 Linear programming with linear objectives always finds optimal solutions at the **corner points** (vertices) of the feasible region. Since all funds must be allocated and the asset with the highest priority coefficient maximizes the objective function, the optimal solution is to allocate everything to that asset. This is mathematically correct but results in concentrated positions.
 
+#### Strategy Comparison: CONVEX vs WEIGHT vs PORTFOLIO
+
+While `diversify: true` mode spreads investments across assets, it differs from other strategies in how it calculates allocation priorities.
+
+**WEIGHT Strategy** - Pure deviation-based allocation:
+```
+allocation_factor = (target - weight) / Σ(all_deviations)
+```
+This strategy only considers **how far** each asset is from its target, treating all deviations equally.
+
+**CONVEX (diversify: true)** - Target-weighted priority allocation:
+```
+priority = (target - weight) × target
+allocation_factor = priority / Σ(all_priorities)
+```
+This strategy multiplies deviation by the target weight, giving **preference to core holdings** (assets with higher target allocations).
+
+**PORTFOLIO Strategy** - Whole portfolio rebalancing:
+```
+adjusted_target = target + (excess_weight / underweight_count)
+allocation_factor = adjusted_target / Σ(all_adjusted_targets)
+```
+This strategy includes **all assets** (even overweighted ones) by redistributing excess weight across underweighted assets.
+
+**Concrete Example:**
+
+Portfolio state:
+- Asset A: weight=48.6%, target=50.0% → deviation=1.4%
+- Asset B: weight=8.5%, target=11.0% → deviation=2.5%
+- Asset C: weight=19.1%, target=20.0% → deviation=0.9%
+
+Investing $10,000:
+
+| Strategy | Asset A | Asset B | Asset C | Rationale |
+|----------|---------|---------|---------|-----------|
+| **WEIGHT** | $2,916 (29.2%) | $5,208 (52.1%) | $1,876 (18.7%) | Asset B has the largest deviation (2.5%) |
+| **CONVEX (diversify=true)** | $6,062 (60.6%) | $2,381 (23.8%) | $1,557 (15.6%) | Asset A has the highest priority (70.0 = 1.4 × 50.0) |
+| **PORTFOLIO** | $3,333 (33.3%) | $3,333 (33.3%) | $3,333 (33.3%) | Includes all assets with adjusted targets |
+
+**Mathematical Breakdown for CONVEX:**
+```
+Asset A: priority = 1.4 × 50.0 = 70.0
+Asset B: priority = 2.5 × 11.0 = 27.5
+Asset C: priority = 0.9 × 20.0 = 18.0
+Total priority = 115.5
+
+Asset A allocation = (70.0 / 115.5) × $10,000 = $6,062
+Asset B allocation = (27.5 / 115.5) × $10,000 = $2,381
+Asset C allocation = (18.0 / 115.5) × $10,000 = $1,557
+```
+
+**When to Use Each:**
+
+- **WEIGHT**: You want pure rebalancing based solely on deviation, treating all assets equally regardless of their portfolio importance.
+- **CONVEX (diversify=true)**: You want to prioritize your core holdings (high-target assets) while still maintaining diversification across all underweighted assets.
+- **CONVEX (diversify=false)**: You want mathematically optimal aggressive rebalancing, accepting concentrated positions.
+- **PORTFOLIO**: You want conservative allocation that includes the entire portfolio, even overweighted assets.
+
 ### Payload examples
 
 `POST http://localhost:8080/api/optimize`
