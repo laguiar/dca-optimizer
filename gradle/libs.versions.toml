@@ -1,9 +1,9 @@
 [versions]
-kotlin-version = "2.2.21"
+kotlin-version = "2.3.0-RC"
 ktor-version = "3.3.3"
-logback-version = "1.5.18"
+logback-version = "1.5.21"
 mockk-version = "1.14.5"
-kotest-version = "6.0.4"
+kotest-version = "6.0.5"
 commons-numbers-version = "1.2"
 
 [libraries]
